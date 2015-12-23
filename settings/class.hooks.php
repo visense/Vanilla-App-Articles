@@ -11,6 +11,17 @@
  */
 class ArticlesHooks implements Gdn_IPlugin {
     /**
+     * Add link to the articles controller in the main menu.
+     *
+     * @param Gdn_Controller $Sender
+     */
+    public function Base_Render_Before($Sender) {
+        if ($Sender->Menu) {
+            $Sender->Menu->AddLink('Articles', T('Articles'), '/articles', 'Articles.Articles.View');
+        }
+    }
+
+    /**
      * Show article tag in discussion indexes.
      *
      * @param Gdn_Controller $sender The controller.
@@ -24,13 +35,20 @@ class ArticlesHooks implements Gdn_IPlugin {
         }
     }
 
-    public function discussionModel_setCalculatedFields_handler($sender, &$args) {
-        $discussion = &$args['Discussion'];
+    public function discussionModel_setCalculatedFields_handler($sender, $args) {
+        $discussion = $args['Discussion'];
 
         if (strtolower(val('Type', $discussion)) === 'article') {
             $discussion->Url = articleUrl($discussion);
         }
     }
+
+//    // Hide discussions with article type from indexes.
+//    public function discussionModel_BeforeGet_handler($sender, $args) {
+//        if (!isset($args['Wheres']['d.Type'])) {
+//            $sender->SQL->where('d.Type <>', 'Article');
+//        }
+//    }
 
     public function postController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'editdiscussion'
