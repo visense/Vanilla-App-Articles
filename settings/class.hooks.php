@@ -47,6 +47,7 @@ class ArticlesHooks implements Gdn_IPlugin {
 //    public function discussionModel_BeforeGet_handler($sender, $args) {
 //        if (!isset($args['Wheres']['d.Type'])) {
 //            $sender->SQL->where('d.Type <>', 'Article');
+//            $sender->SQL->orWhere('d.Type', null);
 //        }
 //    }
 
