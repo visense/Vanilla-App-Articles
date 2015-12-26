@@ -33,6 +33,13 @@ class ArticlesController extends VanillaController {
             }
         }
 
+        // Add modules
+        saveToConfig('Vanilla.DefaultNewButton', 'post/article', array('Save' => false));
+        $this->addModule('NewDiscussionModule');
+        $this->addModule('DiscussionFilterModule');
+        $this->addModule('CategoriesModule');
+        $this->addModule('BookmarkedModule');
+
         // Determine offset from $page
         list($offset, $limit) = offsetLimit($page, c('Articles.Articles.PerPage', 12), true);
         $page = pageNumber($offset, $limit);

@@ -204,6 +204,7 @@ class ArticleController extends VanillaController {
         }
 
         // Add modules
+        saveToConfig('Vanilla.DefaultNewButton', 'post/article', array('Save' => false));
         $this->addModule('NewDiscussionModule');
         $this->addModule('DiscussionFilterModule');
         $this->addModule('CategoriesModule');

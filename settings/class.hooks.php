@@ -95,7 +95,7 @@ class ArticlesHooks implements Gdn_IPlugin {
             'Singular' => 'Article',
             'Plural' => 'Articles',
             'AddUrl' => '/post/article',
-            'AddText' => 'Compose an Article'
+            'AddText' => 'Compose Article'
         );
     }
 
@@ -106,8 +106,14 @@ class ArticlesHooks implements Gdn_IPlugin {
      */
     public function postController_afterForms_handler($sender) {
         $forms = $sender->Data('Forms');
-        $forms[] = array('Name' => 'Article', 'Label' => Sprite('SpArticle') . T('Compose an Article'), 'Url' => 'post/article');
+        $forms[] = array('Name' => 'Article', 'Label' => Sprite('SpArticle') . T('Compose Article'), 'Url' => 'post/article');
         $sender->setData('Forms', $forms);
+    }
+
+    public function base_beforeDiscussionFilters_handler($sender) {
+        echo '<li class="Articles' . (strtolower($sender->ControllerName) == 'articlescontroller'
+            && strtolower($sender->RequestMethod) == 'index' ? ' Active' : '') . '">'
+            . anchor(sprite('SpArticles') . ' ' . t('Articles'), '/articles') . '</li>';
     }
 
     /**
@@ -136,7 +142,7 @@ class ArticlesHooks implements Gdn_IPlugin {
         // Override if we are looking at the article URL
         if ($sender->RequestMethod === 'article') {
             $sender->Form->addHidden('Type', 'Article');
-            $sender->title(T('Compose an Article'));
+            $sender->title(T('Compose Article'));
             $sender->setData('Breadcrumbs', array(array('Name' => $sender->Data('Title'), 'Url' => '/post/article')));
         }
     }
