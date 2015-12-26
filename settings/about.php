@@ -8,7 +8,7 @@
 
 $ApplicationInfo['Articles'] = array(
     'Description' => 'Provides a way to create articles.',
-    'Version' => '2.0.0',
+    'Version' => '2.0.0a1',
     'Author' => 'Austin S.',
     'AuthorUrl' => 'https://github.com/austins',
     'Url' => 'http://vanillaforums.org/addon/articles-application',

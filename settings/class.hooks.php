@@ -132,20 +132,24 @@ class ArticlesHooks implements Gdn_IPlugin {
         }
     }
 
+    public function structure() {
+        // Call structure.php to update database
+        include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'structure.php');
+    }
+
     /**
      * Automatically executed when application is enabled.
      */
     public function setup() {
-        // Call structure.php to update database
-        include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'structure.php');
+        $this->structure();
 
         // Set home page
         saveToConfig('Routes.DefaultController', 'articles');
 
         // Set current Articles version
-        $applicationInfo = array();
-        include(combinePaths(array(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'about.php')));
-        $version = arrayValue('Version', arrayValue('Articles', $applicationInfo, array()), 'Undefined');
+        $ApplicationInfo = array();
+        include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'about.php');
+        $version = arrayValue('Version', arrayValue('Articles', $ApplicationInfo, array()), 'Undefined');
         saveToConfig('Articles.Version', $version);
     }
 }
