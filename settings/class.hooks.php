@@ -63,6 +63,15 @@ class ArticlesHooks implements Gdn_IPlugin {
         }
     }
 
+    public function discussionController_beforeDiscussionRender_handler($sender) {
+        $discussion = $sender->data('Discussion');
+
+        if (val('Type', $discussion) === 'Article') {
+            // Redirect discussion to article controller
+            redirect(articleUrl($discussion));
+        }
+    }
+
     public function postController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'editdiscussion'
             && strtolower($sender->data('Type')) === 'article'
