@@ -1,0 +1,7 @@
+body#articles_articles_index .Article .OptionsTitle {
+    visibility: hidden;
+}
+
+body#articles_articles_index .Article:hover .OptionsTitle {
+    visibility: visible;
+}

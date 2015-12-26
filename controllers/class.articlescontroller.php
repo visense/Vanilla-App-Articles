@@ -29,9 +29,12 @@ class ArticlesController extends VanillaController {
             if ($title && ($defaultControllerRoute == 'articles')) {
                 $this->title($title, '');
             } else {
-                $this->title(t('Recent Articles'));
+                $this->title(t('Articles'));
             }
         }
+
+        // Add CSS
+        $this->addCssFile('articles.css');
 
         // Add modules
         saveToConfig('Vanilla.DefaultNewButton', 'post/article', array('Save' => false));
@@ -78,7 +81,7 @@ class ArticlesController extends VanillaController {
         $this->fireEvent('AfterBuildPager');
 
         // Render
-        $this->setData('Breadcrumbs', array(array('Name' => t('Recent Articles'), 'Url' => '/articles')));
+        $this->setData('Breadcrumbs', array(array('Name' => t('Articles'), 'Url' => '/articles')));
         $this->render();
     }
 }
