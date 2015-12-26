@@ -15,7 +15,7 @@ class ArticlesHooks implements Gdn_IPlugin {
      *
      * @param Gdn_Controller $Sender
      */
-    public function Base_Render_Before($Sender) {
+    public function base_render_before($Sender) {
         if ($Sender->Menu) {
             $Sender->Menu->AddLink('Articles', T('Articles'), '/articles', 'Articles.Articles.View');
         }
@@ -35,26 +35,39 @@ class ArticlesHooks implements Gdn_IPlugin {
         }
     }
 
-    public function discussionModel_setCalculatedFields_handler($sender, $args) {
-        $discussion = $args['Discussion'];
-
-        if (strtolower(val('Type', $discussion)) === 'article') {
-            $discussion->Url = articleUrl($discussion);
-        }
-    }
-
-//    // Hide discussions with article type from indexes.
-//    public function discussionModel_BeforeGet_handler($sender, $args) {
+//    public function discussionModel_beforeGet_handler($sender, $args) {
+//        // Hide discussions with article type from indexes.
 //        if (!isset($args['Wheres']['d.Type'])) {
 //            $sender->SQL->where('d.Type <>', 'Article');
 //            $sender->SQL->orWhere('d.Type', null);
 //        }
 //    }
 
+    public function discussionModel_setCalculatedFields_handler($sender, $args) {
+        $discussion = $args['Discussion'];
+
+        // If discussion is of type 'Article'
+        if (strtolower(val('Type', $discussion)) === 'article') {
+            // Join discussion with article data
+            $discussionID = val('DiscussionID', $discussion);
+            $articleModel = new ArticleModel();
+            $article = $articleModel->getByDiscussionID($discussionID)->firstRow();
+
+            if ($article) {
+                setValue('Article', $discussion, $article);
+            }
+
+            // Change URL of discussion to article
+            // Must be called after discussion has been joined with article data (to retrieve UrlCode)
+            $discussion->Url = articleUrl($discussion);
+        }
+    }
+
     public function postController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'editdiscussion'
-                && strtolower($sender->data('Type')) === 'article'
-                && $sender->View !== 'preview') {
+            && strtolower($sender->data('Type')) === 'article'
+            && $sender->View !== 'preview'
+        ) {
             $sender->View = PATH_APPLICATIONS . '/articles/views/post/article.php';
             $sender->title(t('Edit Article'));
         }
@@ -101,6 +114,10 @@ class ArticlesHooks implements Gdn_IPlugin {
         $sender->discussion($categoryUrlCode);
     }
 
+    public function discussionModel_beforeSaveDiscussion_handler($sender, $args) {
+        $formPostValues = &$args['FormPostValues'];
+    }
+
     /**
      * Override the PostController->Discussion() method before render to use our view instead.
      *
@@ -116,18 +133,19 @@ class ArticlesHooks implements Gdn_IPlugin {
     }
 
     /**
-     * Run any setup code that a plugin requires before it is ready for general use.
-     *
-     * This method will be called every time a plugin is enabled,
-     * so it should check before performing redundant operations like
-     * inserting tables or data into the database. If a plugin has no setup to
-     * perform, simply declare this method and return TRUE.
-     *
-     * Returns a boolean value indicating success.
-     *
-     * @return boolean
+     * Automatically executed when application is enabled.
      */
     public function setup() {
-        return true;
+        // Call structure.php to update database
+        include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'structure.php');
+
+        // Set home page
+        saveToConfig('Routes.DefaultController', 'articles');
+
+        // Set current Articles version
+        $applicationInfo = array();
+        include(combinePaths(array(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'about.php')));
+        $version = arrayValue('Version', arrayValue('Articles', $applicationInfo, array()), 'Undefined');
+        saveToConfig('Articles.Version', $version);
     }
 }

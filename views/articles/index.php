@@ -1,17 +1,28 @@
 <?php defined('APPLICATION') or exit();
 
-$pagerOptions = array('Wrapper' => '<span class="PagerNub">&#160;</span><div %1$s>%2$s</div>', 'RecordCount' => $this->data('CountArticles'), 'CurrentRecords' => $this->data('Articles')->numRows());
+if (!function_exists('formatBody')) {
+    include $this->fetchViewLocation('helper_functions', 'discussion', 'vanilla');
+}
+
+$pagerOptions = array('Wrapper' => '<span class="PagerNub">&#160;</span><div %1$s>%2$s</div>', 'RecordCount' => $this->data('CountDiscussions'), 'CurrentRecords' => $this->data('Discussions')->numRows());
 if ($this->data('_PagerUrl')) {
     $pagerOptions['Url'] = $this->data('_PagerUrl');
 }
 
-$articles = $this->data('Articles')->result();
+$discussions = $this->data('Discussions')->result();
 
 echo '<div class="Articles">';
-foreach ($articles as $article) {
-    echo "<article id=\"Article_$article->DiscussionID\">";
-    echo wrap("<h2>$article->Name</h2>", 'header');
-    echo wrap($article->Body, 'div');
+foreach ($discussions as $discussion) {
+    echo "<article id=\"Article_{$discussion->Article->ArticleID}\" class=\"Discussion_$discussion->DiscussionID\">";
+    echo wrap("<h2>" . Anchor($discussion->Name, articleUrl($discussion)) . "</h2>", 'header');
+
+    $text = (strlen($discussion->Article->Excerpt) > 0) ? $discussion->Article->Excerpt : $discussion->Body;
+
+    $tempDiscussion = new stdClass();
+    $tempDiscussion->Body = $text;
+    $text = formatBody($tempDiscussion);
+
+    echo wrap($text, 'div');
     echo '</article>';
 }
 echo '</div>';

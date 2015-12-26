@@ -48,8 +48,9 @@ class ArticlesController extends VanillaController {
 
         // Get articles
         $wheres = array('d.Type' => 'Article');
-        $this->setData('CountArticles', $this->DiscussionModel->getCount($wheres));
-        $this->setData('Articles', $this->DiscussionModel->getWhere($wheres, $offset, $limit), true);
+        $this->DiscussionModel->Watching = true; // Only show categories with permission to view
+        $this->setData('CountDiscussions', $this->DiscussionModel->getCount($wheres));
+        $this->setData('Discussions', $this->DiscussionModel->getWhere($wheres, $offset, $limit), true);
         $this->ShowOptions = true;
 
         // Build a pager
@@ -61,7 +62,7 @@ class ArticlesController extends VanillaController {
         }
         $this->Pager = $PagerFactory->getPager($this->EventArguments['PagerType'], $this);
         $this->Pager->ClientID = 'Pager';
-        $this->Pager->configure($offset, $limit, $this->data('CountArticles'), $this->data('_PagerUrl'));
+        $this->Pager->configure($offset, $limit, $this->data('CountDiscussions'), $this->data('_PagerUrl'));
 
         PagerModule::current($this->Pager);
 

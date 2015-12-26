@@ -16,7 +16,7 @@ if (!function_exists('articleUrl')) {
     function articleUrl($discussion, $page = '', $withDomain = true) {
         $discussion = (object)$discussion;
 
-        $result = '/article/' . Gdn_Format::date($discussion->DateInserted, '%Y') . '/' . $discussion->DiscussionID;
+        $result = '/article/' . Gdn_Format::date($discussion->DateInserted, '%Y') . '/' . $discussion->Article->UrlCode;
 
         if ($page) {
             if ($page > 1 || Gdn::Session()->UserID) {
