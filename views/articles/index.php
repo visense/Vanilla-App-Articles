@@ -18,9 +18,9 @@ foreach ($discussions as $discussion) {
 
     $text = (strlen($discussion->Article->Excerpt) > 0) ? $discussion->Article->Excerpt : $discussion->Body;
 
-    $tempDiscussion = new stdClass();
-    $tempDiscussion->Body = $text;
-    $text = formatBody($tempDiscussion);
+    $formatObject = new stdClass();
+    $formatObject->Body = $text;
+    $text = formatBody($formatObject);
 
     echo wrap($text, 'div');
     echo '</article>';
