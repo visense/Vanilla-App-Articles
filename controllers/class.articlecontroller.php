@@ -194,7 +194,7 @@ class ArticleController extends VanillaController {
         if ($this->_DeliveryType != DELIVERY_TYPE_ALL) {
             $this->setJson('LessRow', $this->Pager->toString('less'));
             $this->setJson('MoreRow', $this->Pager->toString('more'));
-            $this->View = 'comments';
+            $this->View = $this->fetchViewLocation('comments', 'discussion', 'vanilla');
         }
 
         // Inform moderator of checked comments in this discussion
@@ -227,6 +227,12 @@ class ArticleController extends VanillaController {
                 require_once $this->fetchViewLocation('attachment', 'attachments', 'dashboard');
             }
         }
+
+        $this->View = $this->fetchViewLocation('index', 'article');
+
+        // Mimic the DiscussionController so addons can run event code
+        $this->ClassName = 'DiscussionController';
+        $this->ControllerName = 'discussion';
 
         $this->render();
     }

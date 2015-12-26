@@ -25,6 +25,12 @@ $this->fireEvent('AfterDiscussionTitle');
 $this->fireEvent('AfterPageTitle');
 
 echo Wrap(formatBody($discussion), 'div');
+
+$this->fireEvent('AfterDiscussionBody');
+WriteReactions($discussion);
+if (val('Attachments', $discussion)) {
+    WriteAttachments($discussion->Attachments);
+}
 echo "</article>";
 
 $this->fireEvent('AfterDiscussion');
