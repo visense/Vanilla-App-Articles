@@ -7,7 +7,7 @@ if (!function_exists('writeComment')) {
 $discussion = $this->Data('Discussion');
 
 // Display article
-echo "<article id=\"Article_{$discussion->Article->ArticleID}\" class=\"Discussion_$discussion->DiscussionID Article\">";
+echo "<article id=\"Article_$discussion->ArticleID\" class=\"Discussion_$discussion->DiscussionID Article\">";
 
 echo "<header class=\"PageTitle\">";
 // Display options

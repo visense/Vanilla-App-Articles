@@ -17,7 +17,7 @@ $discussions = $this->data('Discussions')->result();
 
 echo '<div class="Articles">';
 foreach ($discussions as $discussion) {
-    echo "<article id=\"Article_{$discussion->Article->ArticleID}\" class=\"Discussion_$discussion->DiscussionID Article\">";
+    echo "<article id=\"Article_$discussion->ArticleID\" class=\"Discussion_$discussion->DiscussionID Article\">";
 
     // Display options
     echo '<span class="Options">';
@@ -29,7 +29,7 @@ foreach ($discussions as $discussion) {
     echo wrap("<h2>" . Anchor($discussion->Name, articleUrl($discussion)) . "</h2>", 'header');
 
     // Display excerpt or body
-    $text = (strlen($discussion->Article->Excerpt) > 0) ? $discussion->Article->Excerpt : $discussion->Body;
+    $text = (strlen($discussion->ArticleExcerpt) > 0) ? $discussion->ArticleExcerpt : $discussion->Body;
     $formatObject = new stdClass();
     $formatObject->Body = $text;
     $text = formatBody($formatObject);

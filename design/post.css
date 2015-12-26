@@ -1,0 +1,27 @@
+body.Vanilla.Post #UrlCode span,
+body.Vanilla.Post #UrlCode span {
+    display: inline;
+    background: #ff8;
+    padding: 2px 4px;
+    border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+}
+
+body.Vanilla.Post #UrlCode input.InputBox,
+body.Vanilla.Post #UrlCode input.InputBox {
+    width: 200px;
+    padding: 3px;
+    font-size: 12px;
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', Tahoma, sans-serif;
+}
+
+body.Vanilla.Post #UrlCode a,
+body.Vanilla.Post #UrlCode a {
+    margin-left: 10px;
+}
+
+body.Vanilla.Post #UrlCode strong,
+body.Vanilla.Post #UrlCode strong {
+    color: #666;
+}

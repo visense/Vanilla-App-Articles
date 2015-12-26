@@ -27,29 +27,37 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     }
 
     echo '<div class="P">';
-    echo $this->Form->Label('Article Name', 'Name');
-    echo Wrap($this->Form->TextBox('Name', array('maxlength' => 100, 'class' => 'InputBox BigInput')), 'div', array('class' => 'TextBoxWrapper'));
+    echo $this->Form->label('Article Name', 'Name');
+    echo wrap($this->Form->textBox('Name', array('maxlength' => 100, 'class' => 'InputBox BigInput')), 'div', array('class' => 'TextBoxWrapper'));
     echo '</div>';
 
-    $this->FireEvent('BeforeBodyInput');
+    echo '<div id="UrlCode">';
+    echo wrap('URL Code', 'strong') . ': ';
+    echo wrap(htmlspecialchars($this->Form->getValue('UrlCode')));
+    echo $this->Form->textBox('UrlCode');
+    echo anchor(T('edit'), '#', 'Edit');
+    echo anchor(T('OK'), '#', 'Save SmallButton');
+    echo '</div>';
+
+    $this->fireEvent('BeforeBodyInput');
     echo '<div class="P">';
-    echo $this->Form->BodyBox('Body', array('Table' => 'Discussion', 'FileUpload' => true));
+    echo $this->Form->bodyBox('Body', array('Table' => 'Discussion', 'FileUpload' => true));
     echo '</div>';
 
-    $this->FireEvent('AfterDiscussionFormOptions');
+    $this->fireEvent('AfterDiscussionFormOptions');
 
     echo '<div class="Buttons">';
-    $this->FireEvent('BeforeFormButtons');
-    echo $this->Form->Button((property_exists($this, 'Discussion')) ? 'Save' : 'Post Article', array('class' => 'Button Primary DiscussionButton'));
+    $this->fireEvent('BeforeFormButtons');
+    echo $this->Form->button((property_exists($this, 'Discussion')) ? 'Save' : 'Post Article', array('class' => 'Button Primary DiscussionButton'));
     if (!property_exists($this, 'Discussion') || !is_object($this->Discussion) || (property_exists($this, 'Draft') && is_object($this->Draft))) {
-        echo ' ' . $this->Form->Button('Save Draft', array('class' => 'Button Warning DraftButton'));
+        echo ' ' . $this->Form->button('Save Draft', array('class' => 'Button Warning DraftButton'));
     }
-    echo ' ' . $this->Form->Button('Preview', array('class' => 'Button Warning PreviewButton'));
+    echo ' ' . $this->Form->button('Preview', array('class' => 'Button Warning PreviewButton'));
     echo ' ' . anchor(t('Edit'), '#', 'Button WriteButton Hidden') . "\n";
-    $this->FireEvent('AfterFormButtons');
+    $this->fireEvent('AfterFormButtons');
     echo ' ' . Anchor(T('Cancel'), $cancelUrl, 'Button Cancel');
     echo '</div>';
-    echo $this->Form->Close();
+    echo $this->Form->close();
     echo '</div>';
     ?>
 </div>

@@ -43,18 +43,24 @@ class ArticlesHooks implements Gdn_IPlugin {
 //        }
 //    }
 
+    private function joinArticleData(&$discussion, $discussionID) {
+        $articleModel = new ArticleModel();
+
+        $article = $articleModel->getByDiscussionID($discussionID);
+
+        if ($article) {
+            $discussion = (object)array_merge((array)$discussion, (array)$article);
+        }
+    }
+
     public function discussionModel_setCalculatedFields_handler($sender, $args) {
-        $discussion = $args['Discussion'];
+        $discussion = &$args['Discussion'];
 
         // If discussion is of type 'Article'
         if (strtolower(val('Type', $discussion)) === 'article') {
-            // Join discussion with article data
-            $discussionID = val('DiscussionID', $discussion);
-            $articleModel = new ArticleModel();
-            $article = $articleModel->getByDiscussionID($discussionID)->firstRow();
-
-            if ($article) {
-                setValue('Article', $discussion, $article);
+            // Join discussion with article data if not already joined
+            if (!val('ArticleID', $discussion, false)) {
+                $this->joinArticleData($discussion, val('DiscussionID', $discussion));
             }
 
             // Change URL of discussion to article
@@ -62,6 +68,22 @@ class ArticlesHooks implements Gdn_IPlugin {
             $discussion->Url = articleUrl($discussion);
         }
     }
+
+//    public function discussionModel_AfterAddColumns_handler($sender, $args) {
+//        // Join article data
+//        $data = &$args['Data'];
+//        if ($data instanceof Gdn_DataSet) {
+//            $data2 = $data->result();
+//        } else {
+//            $data2 = &$data;
+//        }
+//
+//        foreach ($data2 as &$discussion) {
+//            if (strtolower(val('Type', $discussion)) === 'article' && !val('ArticleID', $discussion, false)) {
+//                $this->joinArticleData($discussion, val('DiscussionID', $discussion));
+//            }
+//        }
+//    }
 
     public function discussionController_beforeDiscussionRender_handler($sender) {
         $discussion = $sender->data('Discussion');
@@ -71,18 +93,6 @@ class ArticlesHooks implements Gdn_IPlugin {
             redirect(articleUrl($discussion));
         }
     }
-
-    public function postController_render_before($sender) {
-        if (strtolower($sender->RequestMethod) === 'editdiscussion'
-            && strtolower($sender->data('Type')) === 'article'
-            && $sender->View !== 'preview'
-        ) {
-            $sender->View = PATH_APPLICATIONS . '/articles/views/post/article.php';
-            $sender->title(t('Edit Article'));
-        }
-    }
-
-    // Redirect /discussion to article if type of article
 
     /**
      * Add the article discussion type.
@@ -129,10 +139,6 @@ class ArticlesHooks implements Gdn_IPlugin {
         $sender->discussion($categoryUrlCode);
     }
 
-    public function discussionModel_beforeSaveDiscussion_handler($sender, $args) {
-        $formPostValues = &$args['FormPostValues'];
-    }
-
     /**
      * Override the PostController->Discussion() method before render to use our view instead.
      *
@@ -140,11 +146,49 @@ class ArticlesHooks implements Gdn_IPlugin {
      */
     public function postController_beforeDiscussionRender_handler($sender) {
         // Override if we are looking at the article URL
-        if ($sender->RequestMethod === 'article') {
+        $editingArticle = val('Type', $sender->Data('Discussion'), false) === 'Article';
+
+        if ($sender->RequestMethod === 'article' || $editingArticle) {
             $sender->Form->addHidden('Type', 'Article');
-            $sender->title(T('Compose Article'));
-            $sender->setData('Breadcrumbs', array(array('Name' => $sender->Data('Title'), 'Url' => '/post/article')));
+            $sender->title($editingArticle ? T('Edit Article') : T('Compose Article'));
+
+            if ($editingArticle) {
+                $sender->Form->addHidden('UrlCodeIsDefined', '1');
+            } else {
+                $sender->Form->addHidden('UrlCodeIsDefined', '0');
+            }
         }
+    }
+
+    public function postController_render_before($sender) {
+        $editingArticle = strtolower($sender->RequestMethod) === 'editdiscussion'
+            && strtolower($sender->data('Type')) === 'article'
+            && $sender->View !== 'preview';
+
+        // Add CSS and JS assets to article methods
+        if (strtolower($sender->RequestMethod) === 'article' || $editingArticle) {
+            $sender->addCssFile('post.css', 'articles');
+            $sender->addJsFile('post.js', 'articles');
+        }
+
+        // Override editdiscussion view
+        if ($editingArticle) {
+            $sender->View = PATH_APPLICATIONS . '/articles/views/post/article.php';
+            $sender->title(t('Edit Article'));
+
+            // Override editdiscussion breadcrumb link
+            $breadcrumbs = $sender->Data('Breadcrumbs');
+
+            if (isset($breadcrumbs[count($breadcrumbs)]) && $breadcrumbs[count($breadcrumbs)]['Url'] === '/post/discussion') {
+                $breadcrumbs[count($breadcrumbs)]['Url'] = '/post/article';
+            }
+
+            $sender->setData('Breadcrumbs', $breadcrumbs);
+        }
+    }
+
+    public function discussionModel_beforeSaveDiscussion_handler($sender, $args) {
+        $formPostValues = &$args['FormPostValues'];
     }
 
     public function structure() {

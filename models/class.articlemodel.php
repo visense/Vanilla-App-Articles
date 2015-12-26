@@ -21,13 +21,21 @@ class ArticleModel extends Gdn_Model {
         if (!is_numeric($discussionID))
             throw new InvalidArgumentException('The discussion ID must be a numeric value.');
 
-        return $this->getWhere(array('DiscussionID' => $discussionID));
+        $this->SQL->select('a.ArticleID')
+            ->select('a.UrlCode', '', 'ArticleUrlCode')
+            ->select('a.Excerpt', '', 'ArticleExcerpt')
+            ->from('Article a')
+            ->where('a.DiscussionID', $discussionID)
+            ->limit(1);
+
+        return $this->SQL->get()->firstRow();
     }
 
     public function getByUrlCode($urlCode) {
         $this->SQL->select('a.DiscussionID')
-            ->From('Article a')
-            ->Where('a.UrlCode', $urlCode);
+            ->from('Article a')
+            ->where('a.UrlCode', $urlCode)
+            ->limit(1);
 
         // Fetch data.
         $article = $this->SQL->get()->firstRow();
