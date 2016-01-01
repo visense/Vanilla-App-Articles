@@ -17,9 +17,26 @@ class ArticleModel extends Gdn_Model {
         parent::__construct('Article');
     }
 
+    public static function joinArticle(&$discussion, $discussionID) {
+        $articleModel = new ArticleModel();
+
+        $article = $articleModel->getByDiscussionID($discussionID);
+
+        if ($article) {
+            $discussion = (object)array_merge((array)$discussion, (array)$article);
+        }
+    }
+
+    public static function isArticle($discussion) {
+        // Convenience function
+        // Check if discussion object or array has type of Article
+        return (strtolower(val('Type', $discussion, false)) === 'article');
+    }
+
     public function getByDiscussionID($discussionID) {
-        if (!is_numeric($discussionID))
+        if (!is_numeric($discussionID)) {
             throw new InvalidArgumentException('The discussion ID must be a numeric value.');
+        }
 
         $this->SQL->select('a.ArticleID')
             ->select('a.UrlCode', '', 'ArticleUrlCode')
@@ -48,15 +65,5 @@ class ArticleModel extends Gdn_Model {
         }
 
         return false;
-    }
-
-    public static function joinArticle(&$discussion, $discussionID) {
-        $articleModel = new ArticleModel();
-
-        $article = $articleModel->getByDiscussionID($discussionID);
-
-        if ($article) {
-            $discussion = (object)array_merge((array)$discussion, (array)$article);
-        }
     }
 }

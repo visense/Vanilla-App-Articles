@@ -30,7 +30,7 @@ class ArticlesHooks implements Gdn_IPlugin {
     public function base_beforeDiscussionMeta_handler($sender, $args) {
         $discussion = $args['Discussion'];
 
-        if (strtolower(val('Type', $discussion)) === 'article') {
+        if (ArticleModel::isArticle($discussion)) {
             echo ' <span class="Tag Article-Tag">' . T("Article") . '</span> ';
         }
     }
@@ -47,7 +47,7 @@ class ArticlesHooks implements Gdn_IPlugin {
         $discussion = &$args['Discussion'];
 
         // If discussion is of type 'Article'
-        if (strtolower(val('Type', $discussion)) === 'article') {
+        if (ArticleModel::isArticle($discussion)) {
             // Join discussion with article data if not already joined
             if (!val('ArticleID', $discussion, false)) {
                 ArticleModel::joinArticle($discussion, val('DiscussionID', $discussion));
@@ -78,7 +78,7 @@ class ArticlesHooks implements Gdn_IPlugin {
     public function discussionController_beforeDiscussionRender_handler($sender) {
         $discussion = $sender->data('Discussion');
 
-        if (val('Type', $discussion) === 'Article') {
+        if (ArticleModel::isArticle($discussion)) {
             // Redirect discussion to article controller
             redirect(articleUrl($discussion));
         }
@@ -136,7 +136,9 @@ class ArticlesHooks implements Gdn_IPlugin {
      */
     public function postController_beforeDiscussionRender_handler($sender) {
         // Override if we are looking at the article URL
-        $editingArticle = val('Type', $sender->Data('Discussion'), false) === 'Article';
+        $editingArticle = strtolower($sender->RequestMethod) === 'editdiscussion'
+            && ArticleModel::isArticle($sender->Data('Discussion'))
+            && $sender->View !== 'preview';
 
         if ($sender->RequestMethod === 'article' || $editingArticle) {
             $sender->Form->addHidden('Type', 'Article');
