@@ -45,7 +45,8 @@ class ArticlesHooks implements Gdn_IPlugin {
 
     public function discussionController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'delete'
-                && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])) {
+            && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])
+        ) {
             $sender->title(t('Delete Article'));
 
             Gdn::locale()->setTranslation('Are you sure you want to delete this %s?', sprintf(t('Are you sure you want to delete this %s?'), t('article')), false);
@@ -99,7 +100,6 @@ class ArticlesHooks implements Gdn_IPlugin {
 //            }
 //        }
 //    }
-
 
 
     public function discussionController_beforeDiscussionRender_handler($sender) {
@@ -291,6 +291,20 @@ class ArticlesHooks implements Gdn_IPlugin {
                 // Update old and new authors' discussion counts
                 $discussionModel->updateUserDiscussionCount($oldInsertUserID);
                 $discussionModel->updateUserDiscussionCount($author->UserID, true); // Increment
+
+                // Yaga application support. With Yaga, users can't react to their own posts.
+                // Make sure the discussion doesn't have a reaction by the new author
+                if (Gdn::applicationManager()->isEnabled('Yaga')) {
+                    $reactionModel = Yaga::ReactionModel();
+
+                    // Get an object of the reaction the user has made
+                    $reaction = $reactionModel->GetByUser($discussionID, 'discussion', $author->UserID);
+
+                    if (is_object($reaction)) {
+                        // the ReactionModel->Set() method removes the reaction for a discussion if the user already has a reaction for the action ID
+                        $reactionModel->Set($discussionID, 'discussion', $author->UserID, $author->UserID, $reaction->ActionID);
+                    }
+                }
             }
         }
 
