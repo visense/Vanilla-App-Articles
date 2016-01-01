@@ -41,6 +41,7 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
 
     $this->fireEvent('BeforeBodyInput');
     echo '<div class="P">';
+    echo $this->Form->label('Body', 'Body');
     echo $this->Form->bodyBox('Body', array('Table' => 'Discussion', 'FileUpload' => true));
     echo '</div>';
 
