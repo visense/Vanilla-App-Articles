@@ -212,6 +212,8 @@ class ArticleController extends VanillaController {
         $this->addModule('DiscussionFilterModule');
         $this->addModule('CategoriesModule');
         $this->addModule('BookmarkedModule');
+        
+        $this->addModule('RecentActivityModule');
 
         $this->CanEditComments = $session->checkPermission('Vanilla.Comments.Edit', true, 'Category', 'any') && c('Vanilla.AdminCheckboxes.Use');
 

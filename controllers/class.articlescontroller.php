@@ -44,6 +44,8 @@ class ArticlesController extends VanillaController {
         $this->addModule('DiscussionFilterModule');
         $this->addModule('CategoriesModule');
         $this->addModule('BookmarkedModule');
+        $this->addModule('DiscussionsModule');
+        $this->addModule('RecentActivityModule');
 
         // Determine offset from $page
         list($offset, $limit) = offsetLimit($page, c('Articles.Articles.PerPage', 12), true);

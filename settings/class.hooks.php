@@ -45,12 +45,20 @@ class ArticlesHooks implements Gdn_IPlugin {
 
     public function discussionController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'delete'
-            && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])
+                && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])
         ) {
+            // Override delete discussion page translations
             $sender->title(t('Delete Article'));
 
             Gdn::locale()->setTranslation('Are you sure you want to delete this %s?', sprintf(t('Are you sure you want to delete this %s?'), t('article')), false);
+        } else if (strtolower($sender->RequestMethod) === 'index'
+                && ArticleModel::isArticle($sender->data('Discussion'))) {
+            // DiscussionController->Index() method for discussion of type article
         }
+    }
+
+    public function articlesController_render_before($sender) {
+        $sender->Assets['Panel']['DiscussionsModule']->Limit = 4;
     }
 
     public function discussionModel_beforeGet_handler($sender, $args) {
