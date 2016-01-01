@@ -153,9 +153,9 @@ class ArticlesHooks implements Gdn_IPlugin {
             $sender->title($editingArticle ? T('Edit Article') : T('Compose Article'));
 
             if ($editingArticle) {
-                $sender->Form->addHidden('UrlCodeIsDefined', '1');
+                $sender->Form->addHidden('ArticleUrlCodeIsDefined', '1');
             } else {
-                $sender->Form->addHidden('UrlCodeIsDefined', '0');
+                $sender->Form->addHidden('ArticleUrlCodeIsDefined', '0');
             }
         }
     }
@@ -188,7 +188,47 @@ class ArticlesHooks implements Gdn_IPlugin {
     }
 
     public function discussionModel_beforeSaveDiscussion_handler($sender, $args) {
+        // Do validation of inputs before saving discussion
         $formPostValues = &$args['FormPostValues'];
+
+        // Set validation rules, such as required inputs
+        $sender->Validation->applyRule('ArticleUrlCode', 'Required', 'URL code is required.');
+
+        // Check if URL code is unique
+        $urlCode = $formPostValues['ArticleUrlCode'];
+        if (strlen($urlCode) > 0) {
+            $articleModel = new ArticleModel();
+            $article = $articleModel->getByUrlCode($urlCode);
+
+            if ( $article && ($article->DiscussionID !== $formPostValues['DiscussionID']) ) {
+                $sender->Validation->addValidationResult('ArticleUrlCode', 'That URL code is in use by another article. It must be unique.');
+            }
+        }
+    }
+
+    public function discussionModel_afterSaveDiscussion_handler($sender, $args) {
+        $discussionID = $args['DiscussionID'];
+        $discussion = $args['Discussion'];
+        $formPostValues = $args['FormPostValues'];
+
+        // Create or update (save) article entity for discussion
+        $articleModel = new ArticleModel();
+        $fields = array();
+
+        // Check for existing article
+        // Depends on article data being joined via discussionModel_setCalculatedFields_handler
+        $articleID = val('ArticleID', $discussion, false);
+        if ($articleID) {
+            $fields['ArticleID'] = $articleID;
+        }
+
+        // Attach article properties to fields to be saved
+        $fields['DiscussionID'] = $discussionID;
+        $fields['UrlCode'] = Gdn_Format::url($formPostValues['ArticleUrlCode']);
+        $fields['Excerpt'] = (strlen($formPostValues['ArticleExcerpt']) > 0) ? $formPostValues['ArticleExcerpt'] : null;
+
+        // Save the article
+        $articleModel->save($fields);
     }
 
     public function structure() {

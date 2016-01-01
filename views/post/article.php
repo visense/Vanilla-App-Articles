@@ -31,10 +31,10 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo wrap($this->Form->textBox('Name', array('maxlength' => 100, 'class' => 'InputBox BigInput')), 'div', array('class' => 'TextBoxWrapper'));
     echo '</div>';
 
-    echo '<div id="UrlCode">';
+    echo '<div id="ArticleUrlCode">';
     echo wrap('URL Code', 'strong') . ': ';
-    echo wrap(htmlspecialchars($this->Form->getValue('UrlCode')));
-    echo $this->Form->textBox('UrlCode');
+    echo wrap(htmlspecialchars($this->Form->getValue('ArticleUrlCode')));
+    echo $this->Form->textBox('ArticleUrlCode');
     echo anchor(T('edit'), '#', 'Edit');
     echo anchor(T('OK'), '#', 'Save SmallButton');
     echo '</div>';
@@ -42,6 +42,11 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     $this->fireEvent('BeforeBodyInput');
     echo '<div class="P">';
     echo $this->Form->bodyBox('Body', array('Table' => 'Discussion', 'FileUpload' => true));
+    echo '</div>';
+
+    echo '<div class="P">';
+    echo $this->Form->label('Excerpt (Optional)', 'ArticleExcerpt');
+    echo $this->Form->textBox('ArticleExcerpt', array('MultiLine' => true));
     echo '</div>';
 
     $this->fireEvent('AfterDiscussionFormOptions');

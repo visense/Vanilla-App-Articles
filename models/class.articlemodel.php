@@ -49,6 +49,10 @@ class ArticleModel extends Gdn_Model {
     }
 
     public function getByUrlCode($urlCode) {
+        if (!is_string($urlCode) || strlen($urlCode) === 0) {
+            return false;
+        }
+
         $this->SQL->select('a.DiscussionID')
             ->from('Article a')
             ->where('a.UrlCode', $urlCode)
