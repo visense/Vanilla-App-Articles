@@ -8,9 +8,25 @@ body#articles_articles_index .Article:hover .OptionsTitle {
 
 .Meta-Article {
     font-size: 11px;
-    color: #70727c;
+    color: #666;
 }
 
 .Meta-Article > span {
     display: inline-block;
+}
+
+.Article {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #DDD;
+}
+
+.Article:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.ArticleBody {
+    padding: 4px 0;
 }

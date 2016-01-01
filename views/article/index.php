@@ -27,7 +27,7 @@ echo '</header>';
 $this->fireEvent('AfterDiscussionTitle');
 $this->fireEvent('AfterPageTitle');
 
-echo Wrap(formatBody($discussion), 'div');
+echo Wrap(formatBody($discussion), 'div', array('class' => 'ArticleBody'));
 
 $this->fireEvent('AfterDiscussionBody');
 WriteReactions($discussion);

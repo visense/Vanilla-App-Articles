@@ -39,7 +39,7 @@ foreach ($discussions as $discussion) {
     $formatObject = new stdClass();
     $formatObject->Body = $text;
     $text = formatBody($formatObject);
-    echo wrap($text, 'div');
+    echo wrap($text, 'div', array('class' => 'ArticleBody'));
 
     echo '</article>';
 }
