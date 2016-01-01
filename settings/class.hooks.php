@@ -195,12 +195,13 @@ class ArticlesHooks implements Gdn_IPlugin {
         $sender->Validation->applyRule('ArticleUrlCode', 'Required', 'URL code is required.');
 
         // Check if URL code is unique
-        $urlCode = $formPostValues['ArticleUrlCode'];
+        $urlCode = Gdn_Format::url($formPostValues['ArticleUrlCode']);
         if (strlen($urlCode) > 0) {
             $articleModel = new ArticleModel();
             $article = $articleModel->getByUrlCode($urlCode);
 
-            if ( $article && ($article->DiscussionID !== $formPostValues['DiscussionID']) ) {
+            // If URL code exists in the table, and if editing a discussion, is not attached to the discussion ID
+            if ($article && (!isset($formPostValues['DiscussionID']) || ($article->DiscussionID !== (int)$formPostValues['DiscussionID']))) {
                 $sender->Validation->addValidationResult('ArticleUrlCode', 'That URL code is in use by another article. It must be unique.');
             }
         }
