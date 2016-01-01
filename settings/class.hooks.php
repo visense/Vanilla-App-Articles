@@ -43,16 +43,6 @@ class ArticlesHooks implements Gdn_IPlugin {
 //        }
 //    }
 
-    private function joinArticleData(&$discussion, $discussionID) {
-        $articleModel = new ArticleModel();
-
-        $article = $articleModel->getByDiscussionID($discussionID);
-
-        if ($article) {
-            $discussion = (object)array_merge((array)$discussion, (array)$article);
-        }
-    }
-
     public function discussionModel_setCalculatedFields_handler($sender, $args) {
         $discussion = &$args['Discussion'];
 
@@ -60,7 +50,7 @@ class ArticlesHooks implements Gdn_IPlugin {
         if (strtolower(val('Type', $discussion)) === 'article') {
             // Join discussion with article data if not already joined
             if (!val('ArticleID', $discussion, false)) {
-                $this->joinArticleData($discussion, val('DiscussionID', $discussion));
+                ArticleModel::joinArticle($discussion, val('DiscussionID', $discussion));
             }
 
             // Change URL of discussion to article
@@ -80,7 +70,7 @@ class ArticlesHooks implements Gdn_IPlugin {
 //
 //        foreach ($data2 as &$discussion) {
 //            if (strtolower(val('Type', $discussion)) === 'article' && !val('ArticleID', $discussion, false)) {
-//                $this->joinArticleData($discussion, val('DiscussionID', $discussion));
+//                ArticleModel::joinArticle($discussion, val('DiscussionID', $discussion));
 //            }
 //        }
 //    }

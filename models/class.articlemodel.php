@@ -49,4 +49,14 @@ class ArticleModel extends Gdn_Model {
 
         return false;
     }
+
+    public static function joinArticle(&$discussion, $discussionID) {
+        $articleModel = new ArticleModel();
+
+        $article = $articleModel->getByDiscussionID($discussionID);
+
+        if ($article) {
+            $discussion = (object)array_merge((array)$discussion, (array)$article);
+        }
+    }
 }
