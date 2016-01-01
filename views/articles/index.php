@@ -19,7 +19,7 @@ $discussions = $this->data('Discussions')->result();
 
 echo '<div class="Articles">';
 foreach ($discussions as $discussion) {
-    echo "<article id=\"Article_$discussion->ArticleID\" class=\"Discussion_$discussion->DiscussionID Article\">";
+    echo "<article id=\"Discussion_$discussion->DiscussionID\" class=\"Article_$discussion->ArticleID Article\">";
     echo '<header>';
     // Display options
     echo '<span class="Options">';

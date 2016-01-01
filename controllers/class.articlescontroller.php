@@ -33,6 +33,8 @@ class ArticlesController extends VanillaController {
             }
         }
 
+        Gdn_Theme::section('DiscussionList');
+
         // Add CSS
         $this->addCssFile('articles.css');
 
@@ -57,7 +59,7 @@ class ArticlesController extends VanillaController {
         $this->canonicalUrl(url(ConcatSep('/', 'articles', pageNumber($offset, $limit, true, false)), true));
 
         // Get articles
-        $wheres = array('d.Type' => 'Article');
+        $wheres = array('d.Type' => 'Article', 'd.Announce' => 'all');
         $this->DiscussionModel->Watching = true; // Only show categories with permission to view
         $this->setData('CountDiscussions', $this->DiscussionModel->getCount($wheres));
         $this->setData('Discussions', $this->DiscussionModel->getWhere($wheres, $offset, $limit), true);

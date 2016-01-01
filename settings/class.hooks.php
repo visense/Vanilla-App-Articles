@@ -15,9 +15,9 @@ class ArticlesHooks implements Gdn_IPlugin {
      *
      * @param Gdn_Controller $Sender
      */
-    public function base_render_before($Sender) {
-        if ($Sender->Menu) {
-            $Sender->Menu->AddLink('Articles', T('Articles'), '/articles');
+    public function base_render_before($sender) {
+        if ($sender->Menu) {
+            $sender->Menu->addLink('Articles', T('Articles'), '/articles');
         }
     }
 
@@ -28,10 +28,27 @@ class ArticlesHooks implements Gdn_IPlugin {
      * @param array $args Event arguments.
      */
     public function base_beforeDiscussionMeta_handler($sender, $args) {
-        $discussion = $args['Discussion'];
+        if (strtolower($sender->ControllerName) !== 'articlescontroller') {
+            $discussion = $args['Discussion'];
 
-        if (ArticleModel::isArticle($discussion)) {
-            echo ' <span class="Tag Article-Tag">' . T("Article") . '</span> ';
+            if (ArticleModel::isArticle($discussion)) {
+                echo ' <span class="Tag Article-Tag">' . T("Article") . '</span> ';
+            }
+        }
+    }
+
+    public function discussionController_discussionOptions_handler($sender, $args) {
+        if (ArticleModel::isArticle($args['Discussion'])) {
+            $args['DiscussionOptions']['DeleteDiscussion']['Label'] = t('Delete Article');
+        }
+    }
+
+    public function discussionController_render_before($sender) {
+        if (strtolower($sender->RequestMethod) === 'delete'
+                && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])) {
+            $sender->title(t('Delete Article'));
+
+            Gdn::locale()->setTranslation('Are you sure you want to delete this %s?', sprintf(t('Are you sure you want to delete this %s?'), t('article')), false);
         }
     }
 
@@ -63,6 +80,8 @@ class ArticlesHooks implements Gdn_IPlugin {
             // Must be called after discussion has been joined with article data (to retrieve UrlCode)
             $discussion->Url = articleUrl($discussion);
         }
+
+        //
     }
 
 //    public function discussionModel_AfterAddColumns_handler($sender, $args) {

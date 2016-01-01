@@ -5,7 +5,12 @@ if (!function_exists('writeArticleMeta')) {
         $category = CategoryModel::categories($discussion->CategoryID);
         $author = userBuilder($discussion, isset($discussion->FirstName) ? 'First' : 'Insert');
 
-        echo '<div class="Meta ArticleMeta">';
+        echo '<div class="Meta Meta-Discussion Meta-Article">';
+        // Discussion tags for announce and closed
+        if (strtolower(Gdn::controller()->ControllerName) === 'articlescontroller') {
+            writeTags($discussion);
+        }
+
         // Category
         if (c('Vanilla.Categories.Use') && $category) {
             echo wrap(Anchor(htmlspecialchars($discussion->Category), categoryUrl($discussion->CategoryUrlCode)), 'span', array('class' => 'MItem Category ' . $category['CssClass']));
