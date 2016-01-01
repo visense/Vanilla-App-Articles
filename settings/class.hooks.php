@@ -54,11 +54,32 @@ class ArticlesHooks implements Gdn_IPlugin {
         } else if (strtolower($sender->RequestMethod) === 'index'
                 && ArticleModel::isArticle($sender->data('Discussion'))) {
             // DiscussionController->Index() method for discussion of type article
+        } else {
+            $sender->addModule('ArticlesModule');
         }
     }
 
-    public function articlesController_render_before($sender) {
-        $sender->Assets['Panel']['DiscussionsModule']->Limit = 4;
+    public function discussionsModule_init_handler($sender) {
+        $controllerName = strtolower(Gdn::controller()->ControllerName);
+
+        //if ($controllerName === 'articlescontroller') {
+        $discussionModel = new DiscussionModel();
+
+        // Let DiscussionModel know that the sender is the DiscussionsModule
+        // Used by discussionModel_beforeGet_handler() method to only show non-article discussions when viewing ArticlesController
+        $discussionModel->Module = 'DiscussionsModule';
+
+        $categoryIDs = $sender->getCategoryIDs();
+        $where = array('Announce' => 'all');
+
+        if ($categoryIDs) {
+            $where['d.CategoryID'] = CategoryModel::filterCategoryPermissions($categoryIDs);
+        } else {
+            $discussionModel->Watching = true;
+        }
+
+        $sender->setData('Discussions', $discussionModel->get(0, $sender->Limit, $where));
+        //}
     }
 
     public function discussionModel_beforeGet_handler($sender, $args) {
@@ -68,10 +89,29 @@ class ArticlesHooks implements Gdn_IPlugin {
 //            $sender->SQL->orWhere('d.Type', null);
 //        }
 
+        $controller = Gdn::controller();
+        $controllerName = strtolower($controller->ControllerName);
+
+        $senderIsDiscussionsModule = isset($sender->Module) && $sender->Module === 'DiscussionsModule';
+        $senderIsArticlesModule = isset($sender->Module) && $sender->Module === 'ArticlesModule';
+
         // Always show latest article on top in ArticlesController
-        if (strtolower(Gdn::controller()->ControllerName) === 'articlescontroller') {
+        if (($controllerName === 'articlescontroller' && !$senderIsDiscussionsModule)
+                || ($controllerName === 'discussioncontroller' && $senderIsArticlesModule)) {
             $args['SortField'] = 'd.DateInserted';
             $args['SortDirection'] = 'desc';
+        }
+
+        // Only show discussions of type article in Recent Articles module
+        if ($senderIsDiscussionsModule) { //$controllerName === 'articlescontroller' && $senderIsDiscussionsModule) {
+            $sender->SQL->where('d.Type', null);
+            $sender->SQL->orWhere('d.Type <>', 'Article');
+        } else if ($controllerName === 'discussioncontroller' && $senderIsArticlesModule) {
+            $discussion = $controller->EventArguments['Discussion'];
+
+            if (ArticleModel::isArticle($discussion)) {
+                $sender->SQL->where('d.DiscussionID <>', $discussion->DiscussionID);
+            }
         }
     }
 

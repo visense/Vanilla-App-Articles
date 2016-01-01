@@ -212,7 +212,7 @@ class ArticleController extends VanillaController {
         $this->addModule('DiscussionFilterModule');
         $this->addModule('CategoriesModule');
         $this->addModule('BookmarkedModule');
-        
+        $this->addModule('ArticlesModule');
         $this->addModule('RecentActivityModule');
 
         $this->CanEditComments = $session->checkPermission('Vanilla.Comments.Edit', true, 'Category', 'any') && c('Vanilla.AdminCheckboxes.Use');
@@ -237,7 +237,7 @@ class ArticleController extends VanillaController {
 
         // Mimic the DiscussionController so addons can run event code
         $this->ClassName = 'DiscussionController';
-        $this->ControllerName = 'discussion';
+        $this->ControllerName = 'discussioncontroller';
 
         $this->render();
     }

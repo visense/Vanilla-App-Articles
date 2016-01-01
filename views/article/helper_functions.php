@@ -9,6 +9,8 @@ if (!function_exists('writeArticleMeta')) {
         // Discussion tags for announce and closed
         if (strtolower(Gdn::controller()->ControllerName) === 'articlescontroller') {
             writeTags($discussion);
+
+            echo NewComments($discussion);
         }
 
         // Category
