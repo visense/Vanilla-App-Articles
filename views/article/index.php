@@ -1,5 +1,7 @@
 <?php defined('APPLICATION') or exit();
 
+include $this->fetchViewLocation('helper_functions', 'article', 'articles');
+
 if (!function_exists('writeComment')) {
     include $this->fetchViewLocation('helper_functions', 'discussion', 'vanilla');
 }
@@ -8,8 +10,7 @@ $discussion = $this->Data('Discussion');
 
 // Display article
 echo "<article id=\"Article_$discussion->ArticleID\" class=\"Discussion_$discussion->DiscussionID Article\">";
-
-echo "<header class=\"PageTitle\">";
+echo '<header class="PageTitle">';
 // Display options
 echo '<div class="Options">';
 $this->fireEvent('BeforeDiscussionOptions');
@@ -19,7 +20,9 @@ writeAdminCheck();
 echo '</div>';
 
 echo Wrap($discussion->Name, 'h1');
-echo "</header>";
+
+writeArticleMeta($discussion);
+echo '</header>';
 
 $this->fireEvent('AfterDiscussionTitle');
 $this->fireEvent('AfterPageTitle');
@@ -36,7 +39,7 @@ echo "</article>";
 $this->fireEvent('AfterDiscussion');
 
 // Display comments
-echo '<div class="CommentsWrap">';
+echo '<div id="comments" class="CommentsWrap">';
 
 $this->Pager->Wrapper = '<span %1$s>%2$s</span>';
 echo '<span class="BeforeCommentHeading">';

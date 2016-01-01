@@ -1,5 +1,7 @@
 <?php defined('APPLICATION') or exit();
 
+include $this->fetchViewLocation('helper_functions', 'article', 'articles');
+
 if (!function_exists('formatBody')) {
     include $this->fetchViewLocation('helper_functions', 'discussion', 'vanilla');
 }
@@ -18,7 +20,7 @@ $discussions = $this->data('Discussions')->result();
 echo '<div class="Articles">';
 foreach ($discussions as $discussion) {
     echo "<article id=\"Article_$discussion->ArticleID\" class=\"Discussion_$discussion->DiscussionID Article\">";
-
+    echo '<header>';
     // Display options
     echo '<span class="Options">';
     echo optionsList($discussion);
@@ -27,6 +29,10 @@ foreach ($discussions as $discussion) {
 
     // Display article header
     echo wrap("<h2>" . Anchor($discussion->Name, articleUrl($discussion)) . "</h2>", 'header');
+
+    // Display meta
+    writeArticleMeta($discussion);
+    echo '</header>';
 
     // Display excerpt or body
     $text = (strlen($discussion->ArticleExcerpt) > 0) ? $discussion->ArticleExcerpt : $discussion->Body;

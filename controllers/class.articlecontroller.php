@@ -36,6 +36,9 @@ class ArticleController extends VanillaController {
             throw notFoundException('Article');
         }
 
+        // Add CSS
+        $this->addCssFile('articles.css');
+
         $discussionID = $this->Discussion->DiscussionID;
 
         // Define the query offset & limit.

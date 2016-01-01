@@ -5,3 +5,9 @@ body#articles_articles_index .Article .OptionsTitle {
 body#articles_articles_index .Article:hover .OptionsTitle {
     visibility: visible;
 }
+
+.ArticleMeta {
+    font-size: 11px;
+    color: #70727c;
+}
+
