@@ -35,13 +35,19 @@ class ArticlesHooks implements Gdn_IPlugin {
         }
     }
 
-//    public function discussionModel_beforeGet_handler($sender, $args) {
+    public function discussionModel_beforeGet_handler($sender, $args) {
 //        // Hide discussions with article type from indexes.
 //        if (!isset($args['Wheres']['d.Type'])) {
 //            $sender->SQL->where('d.Type <>', 'Article');
 //            $sender->SQL->orWhere('d.Type', null);
 //        }
-//    }
+
+        // Always show latest article on top in ArticlesController
+        if (strtolower(Gdn::controller()->ControllerName) === 'articlescontroller') {
+            $args['SortField'] = 'd.DateInserted';
+            $args['SortDirection'] = 'desc';
+        }
+    }
 
     public function discussionModel_setCalculatedFields_handler($sender, $args) {
         $discussion = &$args['Discussion'];
@@ -74,6 +80,8 @@ class ArticlesHooks implements Gdn_IPlugin {
 //            }
 //        }
 //    }
+
+
 
     public function discussionController_beforeDiscussionRender_handler($sender) {
         $discussion = $sender->data('Discussion');
@@ -137,7 +145,7 @@ class ArticlesHooks implements Gdn_IPlugin {
     public function postController_beforeDiscussionRender_handler($sender) {
         // Override if we are looking at the article URL
         $editingArticle = strtolower($sender->RequestMethod) === 'editdiscussion'
-            && ArticleModel::isArticle($sender->Data('Discussion'))
+            && ArticleModel::isArticle($sender->data('Discussion'))
             && $sender->View !== 'preview';
 
         if ($sender->RequestMethod === 'article' || $editingArticle) {
