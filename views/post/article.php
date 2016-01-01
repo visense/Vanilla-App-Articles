@@ -1,5 +1,7 @@
 <?php defined('APPLICATION') or exit();
 
+$session = Gdn::session();
+
 $cancelUrl = '/articles';
 if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     $cancelUrl = '/categories/' . urlencode($this->Category->UrlCode);
@@ -55,6 +57,24 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo Wrap($this->Form->TextBox('ArticleAuthorName', array('class' => 'InputBox BigInput MultiComplete')),
         'div', array('class' => 'TextBoxWrapper'));
     echo '</div>';
+
+    // Options
+    $options = '';
+    // If the user has any of the following permissions (regardless of junction), show the options
+    // Note: I need to validate that they have permission in the specified category on the back-end
+    // TODO: hide these boxes depending on which category is selected in the dropdown above.
+    if ($session->checkPermission('Vanilla.Discussions.Announce')) {
+        $options .= '<li>' . checkOrRadio('Announce', 'Announce', $this->data('_AnnounceOptions')) . '</li>';
+    }
+
+    $this->EventArguments['Options'] = &$options;
+    $this->fireEvent('DiscussionFormOptions');
+
+    if ($options != '') {
+        echo '<div class="P">';
+        echo '<ul class="List Inline PostOptions">' . $options . '</ul>';
+        echo '</div>';
+    }
 
     $this->fireEvent('AfterDiscussionFormOptions');
 

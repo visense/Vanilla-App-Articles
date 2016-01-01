@@ -222,6 +222,11 @@ class ArticlesHooks implements Gdn_IPlugin {
         // Do validation of inputs before saving discussion
         $formPostValues = &$args['FormPostValues'];
 
+        // If not article, then exit this method
+        if (!isset($formPostValues['Type']) || strtolower($formPostValues['Type']) !== 'article') {
+            return;
+        }
+
         // Set validation rules, such as required inputs
         $sender->Validation->applyRule('ArticleUrlCode', 'Required', 'URL code is required.');
 
@@ -251,8 +256,14 @@ class ArticlesHooks implements Gdn_IPlugin {
 
     public function discussionModel_afterSaveDiscussion_handler($sender, $args) {
         // Gather variables
-        $discussionID = $args['DiscussionID'];
         $discussion = &$args['Discussion'];
+
+        // If not article, then exit this method
+        if (!ArticleModel::isArticle($discussion)) {
+            return;
+        }
+
+        $discussionID = $args['DiscussionID'];
         $formPostValues = $args['FormPostValues'];
 
         // Update discussion InsertUserID if author changed
