@@ -293,7 +293,9 @@ class ArticlesHooks implements Gdn_IPlugin {
                 $discussionModel->updateUserDiscussionCount($author->UserID, true); // Increment
 
                 // Yaga application support. With Yaga, users can't react to their own posts.
-                // Make sure the discussion doesn't have a reaction by the new author
+                // Make sure the discussion doesn't have a reaction by the new author.
+                // This code could be turned into an event and run within the Yaga application itself,
+                // but for now let's put it here.
                 if (Gdn::applicationManager()->isEnabled('Yaga')) {
                     $reactionModel = Yaga::ReactionModel();
 
