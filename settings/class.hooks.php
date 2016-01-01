@@ -17,7 +17,7 @@ class ArticlesHooks implements Gdn_IPlugin {
      */
     public function base_render_before($Sender) {
         if ($Sender->Menu) {
-            $Sender->Menu->AddLink('Articles', T('Articles'), '/articles', 'Articles.Articles.View');
+            $Sender->Menu->AddLink('Articles', T('Articles'), '/articles');
         }
     }
 
