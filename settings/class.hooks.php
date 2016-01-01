@@ -302,7 +302,7 @@ class ArticlesHooks implements Gdn_IPlugin {
 
                     if (is_object($reaction)) {
                         // the ReactionModel->Set() method removes the reaction for a discussion if the user already has a reaction for the action ID
-                        $reactionModel->Set($discussionID, 'discussion', $author->UserID, $author->UserID, $reaction->ActionID);
+                        $reactionModel->Set($discussionID, 'discussion', $oldInsertUserID, $author->UserID, $reaction->ActionID);
                     }
                 }
             }
