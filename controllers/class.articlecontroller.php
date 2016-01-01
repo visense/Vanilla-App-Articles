@@ -32,7 +32,7 @@ class ArticleController extends VanillaController {
             $this->setData('Discussion', $this->ArticleModel->getByUrlCode($urlCode), true);
         }
 
-        if (!is_object($this->Discussion) || $year !== Gdn_Format::date($this->Discussion->DateInserted, '%Y')) {
+        if (!is_object($this->Discussion) || $year !== date('Y', strtotime($this->Discussion->DateInserted))) {
             throw notFoundException('Article');
         }
 
