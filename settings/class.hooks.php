@@ -172,9 +172,19 @@ class ArticlesHooks implements Gdn_IPlugin {
             $sender->title($editingArticle ? T('Edit Article') : T('Compose Article'));
 
             if ($editingArticle) {
+                // If editing
                 $sender->Form->addHidden('ArticleUrlCodeIsDefined', '1');
+
+                // Set author based on InsertUserID
+                $authorName = Gdn::userModel()->getID($sender->Data['Discussion']->InsertUserID)->Name;
+                $sender->Form->setValue('ArticleAuthorName', $authorName);
             } else {
+                // If not editing
                 $sender->Form->addHidden('ArticleUrlCodeIsDefined', '0');
+
+                // Set default author
+                $authorName = Gdn::session()->User->Name;
+                $sender->Form->setValue('ArticleAuthorName', $authorName);
             }
         }
     }
@@ -186,6 +196,8 @@ class ArticlesHooks implements Gdn_IPlugin {
 
         // Add CSS and JS assets to article methods
         if (strtolower($sender->RequestMethod) === 'article' || $editingArticle) {
+            $sender->AddJsFile('jquery.autocomplete.js');
+
             $sender->addCssFile('post.css', 'articles');
             $sender->addJsFile('post.js', 'articles');
         }
@@ -224,12 +236,52 @@ class ArticlesHooks implements Gdn_IPlugin {
                 $sender->Validation->addValidationResult('ArticleUrlCode', 'That URL code is in use by another article. It must be unique.');
             }
         }
+
+        // Check if the user in author name field exists
+        // If the author name is the same as the current user's name, then the author definitely exists
+        if (isset($formPostValues['ArticleAuthorName']) && strcasecmp($formPostValues['ArticleAuthorName'], Gdn::session()->User->Name) !== 0) {
+            $authorName = $formPostValues['ArticleAuthorName'];
+            $author = Gdn::userModel()->getByUsername($authorName);
+
+            if (!$author) {
+                $sender->Validation->addValidationResult('ArticleAuthorName', 'The user name entered for the author does not exist.');
+            }
+        }
     }
 
     public function discussionModel_afterSaveDiscussion_handler($sender, $args) {
+        // Gather variables
         $discussionID = $args['DiscussionID'];
-        $discussion = $args['Discussion'];
+        $discussion = &$args['Discussion'];
         $formPostValues = $args['FormPostValues'];
+
+        // Update discussion InsertUserID if author changed
+        if (isset($formPostValues['ArticleAuthorName'])) {
+            $authorName = $formPostValues['ArticleAuthorName'];
+
+            // Author definitely exists since the field is validated in the BeforeSaveDiscussion event
+            $author = Gdn::userModel()->getByUsername($authorName);
+
+            // If author doesn't exist, the current InsertUserID is kept
+            // Or if the author is the same as the current InsertUserID, don't do unnecessary checking.
+            if ($author && $author->UserID !== $discussion->InsertUserID) {
+                $oldInsertUserID = $discussion->InsertUserID;
+
+                $discussionModel = new DiscussionModel();
+
+                // Update discussion InsertUserID with new author's UserID
+                $discussionModel->update(
+                    array('InsertUserID' => $author->UserID),
+                    array('DiscussionID' => $discussionID)
+                );
+
+                $discussion->InsertUserID = $author->UserID;
+
+                // Update old and new authors' discussion counts
+                $discussionModel->updateUserDiscussionCount($oldInsertUserID);
+                $discussionModel->updateUserDiscussionCount($author->UserID, true); // Increment
+            }
+        }
 
         // Create or update (save) article entity for discussion
         $articleModel = new ArticleModel();

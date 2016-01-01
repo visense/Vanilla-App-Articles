@@ -10,3 +10,7 @@ body#articles_articles_index .Article:hover .OptionsTitle {
     font-size: 11px;
     color: #70727c;
 }
+
+.Meta-Article > span {
+    display: inline-block;
+}

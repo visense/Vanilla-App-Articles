@@ -49,6 +49,12 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo $this->Form->textBox('ArticleExcerpt', array('MultiLine' => true));
     echo '</div>';
 
+    echo '<div class="P">';
+    echo $this->Form->Label('Author', 'ArticleAuthorName');
+    echo Wrap($this->Form->TextBox('ArticleAuthorName', array('class' => 'InputBox BigInput MultiComplete')),
+        'div', array('class' => 'TextBoxWrapper'));
+    echo '</div>';
+
     $this->fireEvent('AfterDiscussionFormOptions');
 
     echo '<div class="Buttons">';

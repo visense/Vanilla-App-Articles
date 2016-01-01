@@ -25,4 +25,17 @@ jQuery(document).ready(function ($) {
 
         return false;
     });
+
+    // Enable multicomplete on article author name text box
+    $('#Form_ArticleAuthorName').livequery(function() {
+        $(this).autocomplete(
+            gdn.url('/dashboard/user/autocomplete/'),
+            {
+                minChars: 1,
+                multiple: false,
+                scrollHeight: 220,
+                selectFirst: true
+            }
+        );
+    });
 });
