@@ -103,7 +103,7 @@ class ArticlesHooks implements Gdn_IPlugin {
         }
 
         // Only show discussions of type article in Recent Articles module
-        if ($senderIsDiscussionsModule) { //$controllerName === 'articlescontroller' && $senderIsDiscussionsModule) {
+        if ($controllerName === 'articlescontroller' && $senderIsDiscussionsModule) {
             $sender->SQL->where('d.Type', 'Article');
             $sender->SQL->Where('d.CountComments >', 0);
             $sender->SQL->orWhere('d.Type', null);
