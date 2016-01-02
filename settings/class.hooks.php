@@ -133,6 +133,13 @@ class ArticlesHooks implements Gdn_IPlugin {
         //
     }
 
+    public function discussionModel_deleteDiscussion_handler($sender, $args) {
+        $discussionID = $args['DiscussionID'];
+
+        $articleModel = new ArticleModel();
+        $articleModel->delete(array('DiscussionID' => $discussionID));
+    }
+
 //    public function discussionModel_AfterAddColumns_handler($sender, $args) {
 //        // Join article data
 //        $data = &$args['Data'];
