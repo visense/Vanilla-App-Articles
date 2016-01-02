@@ -16,7 +16,7 @@ class ArticlesHooks implements Gdn_IPlugin {
      * @param Gdn_Controller $Sender
      */
     public function base_render_before($sender) {
-        if ($sender->Menu) {
+        if ($sender->Menu && c('Articles.ShowArticlesMenuLink')) {
             $sender->Menu->addLink('Articles', T('Articles'), '/articles');
         }
     }
@@ -194,9 +194,11 @@ class ArticlesHooks implements Gdn_IPlugin {
     }
 
     public function base_beforeDiscussionFilters_handler($sender) {
-        echo '<li class="Articles' . (strtolower($sender->ControllerName) == 'articlescontroller'
-            && strtolower($sender->RequestMethod) == 'index' ? ' Active' : '') . '">'
-            . anchor(sprite('SpArticles') . ' ' . t('Articles'), '/articles') . '</li>';
+        if (c('Articles.ShowArticlesMenuLink')) {
+            echo '<li class="Articles' . (strtolower($sender->ControllerName) == 'articlescontroller'
+                && strtolower($sender->RequestMethod) == 'index' ? ' Active' : '') . '">'
+                . anchor(sprite('SpArticles') . ' ' . t('Articles'), '/articles') . '</li>';
+        }
     }
 
     /**
