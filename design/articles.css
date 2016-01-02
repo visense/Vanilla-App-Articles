@@ -30,3 +30,10 @@ body#articles_articles_index .Article:hover .OptionsTitle {
 .ArticleBody {
     padding: 4px 0;
 }
+
+body#articles_article_index .ArticleBody {
+    margin-bottom: 5px;
+    font-size: 110%;
+    line-height: 1.7;
+    word-wrap: break-word;
+}
