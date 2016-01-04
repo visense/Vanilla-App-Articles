@@ -52,6 +52,10 @@ body#articles_article_index .ArticleBody {
     word-wrap: break-word;
 }
 
+#AuthorInfo {
+    margin-top: 15px;
+}
+
 #AuthorInfo #AboutTheAuthor {
     float: right;
     font-weight: bold;
