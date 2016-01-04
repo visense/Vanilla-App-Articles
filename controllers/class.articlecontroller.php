@@ -11,7 +11,7 @@
  */
 class ArticleController extends VanillaController {
     /** @var arrayModels to include. */
-    public $Uses = array('ArticleModel', 'DiscussionModel', 'CommentModel', 'Form');
+    public $Uses = array('ArticleModel', 'ArticleThumbnailModel', 'DiscussionModel', 'CommentModel', 'Form');
 
     /** @var array Unique identifier. */
     public $CategoryID;
@@ -39,7 +39,7 @@ class ArticleController extends VanillaController {
         // Add CSS
         $this->addCssFile('articles.css');
 
-        $discussionID = $this->Discussion->DiscussionID;
+        $this->DiscussionID = $this->Discussion->DiscussionID;
 
         // Define the query offset & limit.
         $limit = c('Vanilla.Comments.PerPage', 30);
@@ -56,7 +56,7 @@ class ArticleController extends VanillaController {
         }
 
         $category = CategoryModel::categories($this->Discussion->CategoryID);
-        $this->setData('Category', $category);
+        $this->setData('Category', $category, true);
 
         if ($categoryCssClass = val('CssClass', $category)) {
             Gdn_Theme::section($categoryCssClass);
@@ -113,35 +113,16 @@ class ArticleController extends VanillaController {
         $this->canonicalUrl(articleUrl($this->Discussion, pageNumber($this->Offset, $limit, 0, false)));
 
         // Load the comments
-        $this->setData('Comments', $this->CommentModel->get($discussionID, $limit, $this->Offset));
+        $this->setData('Comments', $this->CommentModel->get($this->DiscussionID, $limit, $this->Offset));
 
         $pageNumber = PageNumber($this->Offset, $limit);
         $this->setData('Page', $pageNumber);
-        $this->_SetOpenGraph();
 
+        // Set meta tags
+        $this->addMetaTags();
 
-        include_once(PATH_LIBRARY . '/vendors/simplehtmldom/simple_html_dom.php');
-        if ($pageNumber == 1) {
-            $this->description(sliceParagraph(Gdn_Format::plainText($this->Discussion->Body, $this->Discussion->Format), 160));
-            // Add images to head for open graph
-            $dom = str_get_html(Gdn_Format::to($this->Discussion->Body, $this->Discussion->Format));
-        } else {
+        if ($pageNumber > 1) {
             $this->Data['Title'] .= sprintf(t(' - Page %s'), PageNumber($this->Offset, $limit));
-
-            $firstComment = $this->data('Comments')->firstRow();
-            $firstBody = val('Body', $firstComment);
-            $firstFormat = val('Format', $firstComment);
-            $this->description(sliceParagraph(Gdn_Format::plainText($firstBody, $firstFormat), 160));
-            // Add images to head for open graph
-            $dom = str_get_html(Gdn_Format::to($firstBody, $firstFormat));
-        }
-
-        if ($dom) {
-            foreach ($dom->find('img') as $img) {
-                if (isset($img->src)) {
-                    $this->image($img->src);
-                }
-            }
         }
 
         // Queue notification.
@@ -218,7 +199,7 @@ class ArticleController extends VanillaController {
         $this->CanEditComments = $session->checkPermission('Vanilla.Comments.Edit', true, 'Category', 'any') && c('Vanilla.AdminCheckboxes.Use');
 
         // Report the discussion id so js can use it.
-        $this->addDefinition('DiscussionID', $discussionID);
+        $this->addDefinition('DiscussionID', $this->DiscussionID);
         $this->addDefinition('Category', $this->data('Category.Name'));
 
         $this->fireEvent('BeforeDiscussionRender');
@@ -242,11 +223,71 @@ class ArticleController extends VanillaController {
         $this->render();
     }
 
-    protected function _setOpenGraph() {
+    protected function addMetaTags() {
         if (!$this->Head) {
             return;
         }
 
         $this->Head->addTag('meta', array('property' => 'og:type', 'content' => 'article'));
+
+        // Date published
+        $this->Head->addTag('meta', array('property' => 'article:published_time',
+            'content' => date(DATE_ISO8601, strtotime($this->Discussion->DateInserted))));
+
+        // Date modified
+        if (!is_null($this->Discussion->DateUpdated)) {
+            $this->Head->addTag('meta', array('property' => 'article:modified_time',
+                'content' => date(DATE_ISO8601, strtotime($this->Discussion->DateUpdated))));
+        }
+
+        // Set description
+        if (strlen($this->Discussion->ArticleExcerpt) > 0) {
+            $description = Gdn_Format::plainText($this->Discussion->ArticleExcerpt, $this->Discussion->Format);
+        } else {
+            $description = sliceParagraph(Gdn_Format::plainText($this->Discussion->Body, $this->Discussion->Format), 160);
+        }
+
+        $this->description($description);
+
+        // Author info
+        $user = Gdn::userModel()->getID($this->Discussion->InsertUserID);
+        $this->Head->addTag('meta', array('property' => 'article:author', 'content' => url(userUrl($user), true)));
+
+        // Category
+        $this->Head->addTag('meta', array('property' => 'article:section', 'content' => val('Name', $this->Category)));
+
+        // Thumbnail
+        $thumbnail = $this->ArticleThumbnailModel->getByArticleID($this->Discussion->ArticleID);
+        if ($thumbnail) {
+            $thumbnailPath = url('/uploads' . $thumbnail->Path, true);
+
+            $this->image($thumbnailPath);
+        }
+
+        // Add images from discussion body to head for open graph
+        include_once(PATH_LIBRARY . '/vendors/simplehtmldom/simple_html_dom.php');
+        $dom = str_get_html(Gdn_Format::to($this->Discussion->Body, $this->Discussion->Format));
+        if ($dom) {
+            foreach ($dom->find('img') as $img) {
+                if (isset($img->src)) {
+                    $this->image($img->src);
+                }
+            }
+        }
+
+        // Twitter card
+        $this->Head->addTag('meta', array('name' => 'twitter:card', 'content' => 'summary'));
+
+        $twitterUsername = trim(c('Articles.TwitterUsername', ''));
+        if ($twitterUsername != '') {
+            $this->Head->addTag('meta', array('name' => 'twitter:site', 'content' => '@' . $twitterUsername));
+        }
+
+        $this->Head->addTag('meta', array('name' => 'twitter:title', 'content' => $this->Discussion->Name));
+        $this->Head->addTag('meta', array('name' => 'twitter:description', 'content' => $description));
+
+        if ($thumbnail) {
+            $this->Head->addTag('meta', array('name' => 'twitter:image', 'content' => $thumbnailPath));
+        }
     }
 }
