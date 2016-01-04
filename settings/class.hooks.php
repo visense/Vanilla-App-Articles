@@ -43,6 +43,20 @@ class ArticlesHooks extends Gdn_Plugin {
         }
     }
 
+    public function discussionController_authorInfo_handler($sender, $args) {
+        if (ArticleModel::isArticle($args['Discussion'])) {
+            $commentAuthor = $args['Author'];
+
+            // Get author display name
+            $authorMeta = userModel::getMeta($commentAuthor->UserID, 'Articles.%', 'Articles.');
+            $authorDisplayName = $authorMeta['AuthorDisplayName'] != '' ? $authorMeta['AuthorDisplayName'] : false;
+
+            if ($authorDisplayName) {
+                echo '<span class="MItem ArticleAuthorDisplayName">(' . $authorDisplayName . ')</span> ';
+            }
+        }
+    }
+
     public function discussionController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'delete'
             && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])

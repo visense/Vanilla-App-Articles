@@ -22,7 +22,15 @@ if (!function_exists('writeArticleMeta')) {
         echo ' <span class="MItem Date">' . Gdn_Format::date($discussion->DateInserted, '%e %B %Y - %l:%M %p') . '</span>';
 
         // Author
-        echo ' <span class="MItem Author">' . userAnchor($author) . '</span> ';
+        // Get author display name
+        $authorMeta = userModel::getMeta($author->UserID, 'Articles.%', 'Articles.');
+        $authorOptions = array();
+        if ($authorMeta['AuthorDisplayName'] != "") {
+            $authorOptions['Text'] = $authorMeta['AuthorDisplayName'];
+            $authorOptions['title'] = $author->Name;
+        }
+
+        echo ' <span class="MItem Author">' . userAnchor($author, null, $authorOptions) . '</span> ';
 
         // Comments
         echo '<span class="MItem MCount CommentCount">';
