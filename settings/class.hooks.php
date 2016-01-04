@@ -45,17 +45,20 @@ class ArticlesHooks extends Gdn_Plugin {
 
     public function discussionController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'delete'
-                && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])
+            && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])
         ) {
             // Override delete discussion page translations
             $sender->title(t('Delete Article'));
 
             Gdn::locale()->setTranslation('Are you sure you want to delete this %s?', sprintf(t('Are you sure you want to delete this %s?'), t('article')), false);
-        } else if (strtolower($sender->RequestMethod) === 'index'
-                && ArticleModel::isArticle($sender->data('Discussion'))) {
-            // DiscussionController->Index() method for discussion of type article
         } else {
-            $sender->addModule('ArticlesModule');
+            if (strtolower($sender->RequestMethod) === 'index'
+                && ArticleModel::isArticle($sender->data('Discussion'))
+            ) {
+                // DiscussionController->Index() method for discussion of type article
+            } else {
+                $sender->addModule('ArticlesModule');
+            }
         }
     }
 
@@ -97,7 +100,8 @@ class ArticlesHooks extends Gdn_Plugin {
 
         // Always show latest article on top in ArticlesController
         if (($controllerName === 'articlescontroller' && !$senderIsDiscussionsModule)
-                || ($controllerName === 'discussioncontroller' && $senderIsArticlesModule)) {
+            || ($controllerName === 'discussioncontroller' && $senderIsArticlesModule)
+        ) {
             $args['SortField'] = 'd.DateInserted';
             $args['SortDirection'] = 'desc';
         }
@@ -107,11 +111,13 @@ class ArticlesHooks extends Gdn_Plugin {
             $sender->SQL->where('d.Type', 'Article');
             $sender->SQL->Where('d.CountComments >', 0);
             $sender->SQL->orWhere('d.Type', null);
-        } else if ($controllerName === 'discussioncontroller' && $senderIsArticlesModule) {
-            $discussion = $controller->EventArguments['Discussion'];
+        } else {
+            if ($controllerName === 'discussioncontroller' && $senderIsArticlesModule) {
+                $discussion = $controller->EventArguments['Discussion'];
 
-            if (ArticleModel::isArticle($discussion)) {
-                $sender->SQL->where('d.DiscussionID <>', $discussion->DiscussionID);
+                if (ArticleModel::isArticle($discussion)) {
+                    $sender->SQL->where('d.DiscussionID <>', $discussion->DiscussionID);
+                }
             }
         }
     }
@@ -590,11 +596,6 @@ class ArticlesHooks extends Gdn_Plugin {
         $sender->render();
     }
 
-    public function structure() {
-        // Call structure.php to update database
-        include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'structure.php');
-    }
-
     /**
      * Automatically executed when application is enabled.
      */
@@ -609,5 +610,74 @@ class ArticlesHooks extends Gdn_Plugin {
         include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'about.php');
         $version = arrayValue('Version', arrayValue('Articles', $ApplicationInfo, array()), 'Undefined');
         saveToConfig('Articles.Version', $version);
+    }
+
+    public function ProfileController_BeforeEdit_Handler($Sender) {
+        $UserMeta = Gdn::UserModel()->GetMeta($Sender->User->UserID, 'Articles.%', 'Articles.');
+        if (!is_array($UserMeta)) {
+            return;
+        }
+
+        if (isset($UserMeta['AuthorDisplayName'])) {
+            $Sender->Form->SetValue('Articles.AuthorDisplayName', $UserMeta['AuthorDisplayName']);
+        }
+
+        if (isset($UserMeta['AuthorBio'])) {
+            $Sender->Form->SetValue('Articles.AuthorBio', $UserMeta['AuthorBio']);
+        }
+    }
+
+    public function ProfileController_EditMyAccountAfter_Handler($Sender) {
+        if (Gdn::Session()->CheckPermission(array('Garden.Users.Edit'), false)) {
+            echo Wrap(
+                $Sender->Form->Label('Author Display Name', 'Articles.AuthorDisplayName') .
+                $Sender->Form->Textbox('Articles.AuthorDisplayName'),
+                'li');
+
+            echo Wrap(
+                $Sender->Form->Label('Author Bio', 'Articles.AuthorBio') .
+                $Sender->Form->Textbox('Articles.AuthorBio', array('multiline' => true)),
+                'li');
+        }
+    }
+
+    public function ProfileController_AfterUserInfo_Handler($Sender) {
+        // Get the custom fields.
+        $UserMeta = Gdn::UserModel()->GetMeta($Sender->User->UserID, 'Articles.%', 'Articles.');
+        if (!is_array($UserMeta)) {
+            return;
+        }
+
+        // Display author display name
+        if (isset($UserMeta['AuthorDisplayName']) && ($UserMeta['AuthorDisplayName'] != '')) {
+            echo '<dl id="BoxProfileAuthorDisplayName" class="About">';
+            echo ' <dt class="Articles Profile AuthorDisplayName">' . T('Author Display Name') . '</dt> ';
+            echo ' <dd class="Articles Profile AuthorDisplayName">' . Gdn_Format::Html($UserMeta['AuthorDisplayName']) . '</dd> ';
+            echo '</dl>';
+        }
+
+        // Display author bio
+        if (isset($UserMeta['AuthorBio']) && ($UserMeta['AuthorBio'] != '')) {
+            echo '<dl id="BoxProfileAuthorBio" class="About">';
+            echo ' <dt class="Articles Profile AuthorBio">' . T('Author Bio') . '</dt> ';
+            echo ' <dd class="Articles Profile AuthorBio">' . Gdn_Format::Html($UserMeta['AuthorBio']) . '</dd> ';
+            echo '</dl>';
+        }
+    }
+
+    public function UserModel_AfterSave_Handler($Sender) {
+        $UserID = val('UserID', $Sender->EventArguments);
+        $FormValues = val('FormPostValues', $Sender->EventArguments, array());
+        $AuthorInfo = array_intersect_key($FormValues,
+            array('Articles.AuthorDisplayName' => 1, 'Articles.AuthorBio' => 1));
+
+        foreach ($AuthorInfo as $k => $v) {
+            Gdn::UserMetaModel()->SetUserMeta($UserID, $k, $v);
+        }
+    }
+
+    public function structure() {
+        // Call structure.php to update database
+        include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'structure.php');
     }
 }
