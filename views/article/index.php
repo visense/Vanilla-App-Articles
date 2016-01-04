@@ -31,10 +31,11 @@ echo wrap(formatBody($discussion), 'div', array('class' => 'ArticleBody'));
 
 $this->fireEvent('AfterDiscussionBody');
 
+writeReactions($discussion);
+
 if (val('Attachments', $discussion)) {
     writeAttachments($discussion->Attachments);
 }
-writeReactions($discussion);
 echo "</article>";
 
 // Display author info
