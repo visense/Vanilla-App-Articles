@@ -22,7 +22,7 @@ $construct->primaryKey('ArticleID')
 // Construct the ArticleThumbnail table
 $construct->table('ArticleThumbnail');
 $construct->primaryKey('ArticleThumbnailID')
-    ->column('ArticleID', 'int', false, 'key')
+    ->column('ArticleID', 'int', true, 'key')
     ->column('Name', 'varchar(255)')
     ->column('Path', 'varchar(255)')
     ->column('Type', 'varchar(128)')

@@ -6,7 +6,6 @@ $cancelUrl = '/articles';
 if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     $cancelUrl = '/categories/' . urlencode($this->Category->UrlCode);
 }
-
 ?>
 <div id="DiscussionForm" class="FormTitleWrapper DiscussionForm">
     <?php
@@ -19,6 +18,7 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo $this->Form->errors();
     $this->fireEvent('BeforeFormInputs');
 
+    // Category
     if ($this->ShowCategorySelector === true) {
         echo '<div class="P">';
         echo '<div class="Category">';
@@ -28,11 +28,13 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
         echo '</div>';
     }
 
+    // Name
     echo '<div class="P">';
     echo $this->Form->label('Article Name', 'Name');
     echo wrap($this->Form->textBox('Name', array('maxlength' => 100, 'class' => 'InputBox BigInput')), 'div', array('class' => 'TextBoxWrapper'));
     echo '</div>';
 
+    // URL code
     echo '<div id="ArticleUrlCode">';
     echo wrap('URL Code', 'strong') . ': ';
     echo wrap(htmlspecialchars($this->Form->getValue('ArticleUrlCode')));
@@ -41,17 +43,38 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo anchor(T('OK'), '#', 'Save SmallButton');
     echo '</div>';
 
+    // Body
     $this->fireEvent('BeforeBodyInput');
     echo '<div class="P">';
     echo $this->Form->label('Body', 'Body');
     echo $this->Form->bodyBox('Body', array('Table' => 'Discussion', 'FileUpload' => true));
     echo '</div>';
 
+    // Excerpt
     echo '<div class="P">';
     echo $this->Form->label('Excerpt (Optional)', 'ArticleExcerpt');
     echo $this->Form->textBox('ArticleExcerpt', array('MultiLine' => true));
     echo '</div>';
 
+    // Article thumbnail
+    echo '<div id="ArticleThumbnailUpload" class="P">';
+    echo $this->Form->label('Upload Thumbnail (Max dimensions: ' . c('Articles.Articles.ThumbnailWidth', 260)
+        . 'x' . c('Articles.Articles.ThumbnailHeight', 146) . ')', 'ArticleThumbnail');
+    echo $this->Form->imageUpload('ArticleThumbnail');
+
+    echo '<div id="ArticleThumbnail">';
+        $thumbnail = $this->data('ArticleThumbnail');
+        if ($thumbnail) {
+            $imagePath = Url('/uploads' . $thumbnail->Path);
+
+            echo '<div id="ArticleThumbnailImage"><img src="' . $imagePath . '" alt="" /></div>' .
+                '<div id="ArticleThumbnailActions"><a id="DeleteArticleThumbnail" href="' . Url('/post/deletearticlethumbnail/'
+                    . $thumbnail->ArticleThumbnailID) . '?DeliveryMethod=JSON&DeliveryType=BOOL">Delete</a></div>';
+        }
+    echo '</div>';
+    echo '</div>';
+
+    // Author
     echo '<div class="P">';
     echo $this->Form->Label('Author', 'ArticleAuthorName');
     echo Wrap($this->Form->TextBox('ArticleAuthorName', array('class' => 'InputBox BigInput MultiComplete')),
@@ -78,6 +101,7 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
 
     $this->fireEvent('AfterDiscussionFormOptions');
 
+    // Buttons
     echo '<div class="Buttons">';
     $this->fireEvent('BeforeFormButtons');
     echo $this->Form->button((property_exists($this, 'Discussion')) ? 'Save' : 'Post Article', array('class' => 'Button Primary DiscussionButton'));

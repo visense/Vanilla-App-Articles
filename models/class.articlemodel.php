@@ -35,7 +35,7 @@ class ArticleModel extends Gdn_Model {
 
     public function getByDiscussionID($discussionID) {
         if (!is_numeric($discussionID)) {
-            throw new InvalidArgumentException('The discussion ID must be a numeric value.');
+            throw new invalidArgumentException('The discussion ID must be a numeric value.');
         }
 
         $this->SQL->select('a.ArticleID')

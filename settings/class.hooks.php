@@ -135,10 +135,19 @@ class ArticlesHooks implements Gdn_IPlugin {
     }
 
     public function discussionModel_deleteDiscussion_handler($sender, $args) {
-        $discussionID = $args['DiscussionID'];
+        if (ArticleModel::isArticle($args['Discussion'])) {
+            $discussionID = $args['DiscussionID'];
 
-        $articleModel = new ArticleModel();
-        $articleModel->delete(array('DiscussionID' => $discussionID));
+            $articleModel = new ArticleModel();
+            $article = $articleModel->getByDiscussionID($discussionID);
+
+            // Delete article thumbnail
+            $articleThumbnailModel = new ArticleThumbnailModel();
+            $articleThumbnailModel->deleteByArticleID($article->ArticleID);
+
+            // Delete article
+            $articleModel->delete($article->ArticleID);
+        }
     }
 
 //    public function discussionModel_AfterAddColumns_handler($sender, $args) {
@@ -231,14 +240,25 @@ class ArticlesHooks implements Gdn_IPlugin {
 
             if ($editingArticle) {
                 // If editing
-                $sender->Form->addHidden('ArticleUrlCodeIsDefined', '1');
+                $articleID = $sender->data('Discussion')->ArticleID;
+                $sender->Form->addHidden('ArticleID', $articleID);
+
+                // Add URL code identifier
+                $sender->Form->addHidden('ArticleUrlCodeDefined', '1');
 
                 // Set author based on InsertUserID
                 $authorName = Gdn::userModel()->getID($sender->Data['Discussion']->InsertUserID)->Name;
                 $sender->Form->setValue('ArticleAuthorName', $authorName);
+
+                // Get thumbnail
+                $articleThumbnailModel = new ArticleThumbnailModel();
+                $thumbnail = $articleThumbnailModel->getByArticleID($articleID);
+                if ($thumbnail) {
+                    $sender->setData('ArticleThumbnail', $thumbnail, true);
+                }
             } else {
                 // If not editing
-                $sender->Form->addHidden('ArticleUrlCodeIsDefined', '0');
+                $sender->Form->addHidden('ArticleUrlCodeDefined', '0');
 
                 // Set default author
                 $authorName = Gdn::session()->User->Name;
@@ -275,6 +295,137 @@ class ArticlesHooks implements Gdn_IPlugin {
 
             $sender->setData('Breadcrumbs', $breadcrumbs);
         }
+    }
+
+    /**
+     * Allows the user to upload an image to an article via AJAX.
+     *
+     * @return false on failure
+     * @throws NotFoundException if no files posted
+     * @throws PermissionException if user doesn't have permission to upload
+     */
+    public function postController_uploadArticleThumbnail_create($sender) {
+        // Check for file data
+        if (!$_FILES) {
+            throw NotFoundException('Page');
+        }
+
+        // Check permission
+        $sender->permission('Vanilla.Discussions.Add');
+
+        // Handle the file data
+        $sender->deliveryMethod(DELIVERY_METHOD_JSON);
+        $sender->deliveryType(DELIVERY_TYPE_VIEW);
+
+        // ArticleID is saved with media model if editing. ArticleID is null if new article.
+        // Null ArticleID is replaced by ArticleID when new article is saved.
+        $articleID = $_POST['ArticleID'];
+        if (!is_numeric($articleID) || ($articleID <= 0)) {
+            $articleID = null;
+        }
+
+        /*
+         * $_FILES['UploadImage_New'] array format:
+         *  'name' => 'example.jpg',
+         *  'type' => 'image/jpeg',
+         *  'tmp_name' => 'C:\example\tmp\example.tmp' (temp. path on the user's computer to .tmp file)
+         *  'error' => 0 (valid data)
+         *  'size' => 15517 (bytes)
+         */
+        //$imageData = $_FILES[$UploadFieldName];
+        $uploadFieldName = 'ArticleThumbnail_New';
+
+        // Upload the image.
+        $uploadImage = new Gdn_UploadImage();
+        try {
+            $tmpFileName = $uploadImage->validateUpload($uploadFieldName);
+
+            // Generate the target image name.
+            $currentYear = date('Y');
+            $currentMonth = date('m');
+            $uploadPath = PATH_UPLOADS . '/articles/' . $currentYear . '/' . $currentMonth;
+            $targetImage = $uploadImage->generateTargetName($uploadPath, false, false);
+            $basename = pathinfo($targetImage, PATHINFO_BASENAME);
+            $extension = trim(pathinfo($targetImage, PATHINFO_EXTENSION), '.');
+            $uploadsSubdir = '/articles/' . $currentYear . '/' . $currentMonth;
+
+            $saveWidth = c('Articles.Articles.ThumbnailWidth', 260);
+            $saveHeight = c('Articles.Articles.ThumbnailHeight', 146);
+
+            // Save the uploaded image.
+            $props = $uploadImage->saveImageAs(
+                $tmpFileName,
+                $uploadsSubdir . '/' . $basename,
+                $saveHeight,
+                $saveWidth,
+                array('OutputType' => $extension, 'ImageQuality' => c('Garden.UploadImage.Quality', 75))
+            );
+
+            $uploadedImagePath = sprintf($props['SaveFormat'], $uploadsSubdir . '/' . $basename);
+        } catch (Exception $ex) {
+            return false;
+        }
+
+        // Save the image
+        $imageProps = getimagesize($targetImage);
+
+        $articleThumbnailModel = new ArticleThumbnailModel();
+
+        $thumbnailValues = array(
+            'ArticleID' => $articleID,
+            'Name' => $basename,
+            'Type' => $imageProps['mime'],
+            'Size' => filesize($targetImage),
+            'ImageWidth' => $imageProps[0],
+            'ImageHeight' => $imageProps[1],
+            'Path' => $uploadedImagePath,
+            'DateInserted' => Gdn_Format::toDateTime(),
+            'InsertUserID' => Gdn::session()->UserID,
+        );
+
+        $articleThumbnailID = $articleThumbnailModel->save($thumbnailValues);
+
+        // Return path to the uploaded image in the following format.
+        // Example: '/articles/year/month/filename.jpg'
+        $jsonData = array(
+            'ArticleThumbnailID' => $articleThumbnailID,
+            'Name' => $basename,
+            'Path' => $uploadedImagePath
+        );
+
+        $jsonReturn = json_encode($jsonData);
+
+        die($jsonReturn);
+    }
+
+    /**
+     * Allows the user to delete an image from an article.
+     *
+     * @param int $articleThumbnailID
+     * @throws NotFoundException if invalid articleThumbnailID
+     * @throws PermissionException if user doesn't have permission to upload
+     */
+    public function postController_deleteArticleThumbnail_create($sender, $articleThumbnailID) {
+        if (!is_numeric($articleThumbnailID) || $sender->deliveryMethod() != DELIVERY_METHOD_JSON || $sender->deliveryType() != DELIVERY_TYPE_BOOL) {
+            throw notFoundException('Page');
+        }
+
+        // Check permission
+        $sender->permission('Vanilla.Discussions.Add');
+
+        $articleThumbnailModel = new ArticleThumbnailModel();
+        $thumbnail = $articleThumbnailModel->getID($articleThumbnailID);
+        if (!$thumbnail) {
+            throw notFoundException('Article thumbnail');
+        }
+
+        $sender->deliveryMethod(DELIVERY_METHOD_JSON);
+        $sender->deliveryType(DELIVERY_TYPE_BOOL);
+
+        // Delete the thumbnail
+        $articleThumbnailModel->delete($thumbnail);
+
+        $sender->render('Blank', 'Utility', 'Dashboard');
     }
 
     public function discussionModel_beforeSaveDiscussion_handler($sender, $args) {
@@ -386,7 +537,14 @@ class ArticlesHooks implements Gdn_IPlugin {
         $fields['Excerpt'] = (strlen($formPostValues['ArticleExcerpt']) > 0) ? $formPostValues['ArticleExcerpt'] : null;
 
         // Save the article
-        $articleModel->save($fields);
+        $articleID = $articleModel->save($fields);
+
+        // Set article ID to thumbnail ID
+        $articleThumbnailID = (int)$formPostValues['ArticleThumbnailID'];
+        if ($articleThumbnailID > 0) {
+            $articleThumbnailModel = new ArticleThumbnailModel();
+            $articleThumbnailModel->setField($articleThumbnailID, 'ArticleID', $articleID);
+        }
     }
 
     public function structure() {
