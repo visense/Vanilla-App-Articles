@@ -29,7 +29,7 @@ class ArticlesHooks extends Gdn_Plugin {
                 if (gdn::applicationManager()->isEnabled('Vanilla')) {
                     $sender->Menu->addLink('Discussions', T('Discussions'), '/discussions');
                 }
-                
+
                 $sender->Menu->addLink('Activity', T('Activity'), '/activity', 'Garden.Activity.View');
             }
         }
@@ -701,6 +701,12 @@ class ArticlesHooks extends Gdn_Plugin {
 
         foreach ($AuthorInfo as $k => $v) {
             Gdn::UserMetaModel()->SetUserMeta($UserID, $k, $v);
+        }
+    }
+
+    public function postController_afterCommentPreviewFormat_handler($sender) {
+        if (isset($sender->Comment->Body)) {
+            $sender->Comment->Body = formatArticleBodyParagraphs($sender->Comment->Body);
         }
     }
 

@@ -41,7 +41,7 @@ foreach ($discussions as $discussion) {
     echo '<div class="ArticleInner">';
     echo '<header>';
     // Display article header
-    echo wrap("<h2>" . Anchor($discussion->Name, articleUrl($discussion)) . "</h2>", 'header');
+    echo "<h2>" . Anchor($discussion->Name, articleUrl($discussion)) . "</h2>";
 
     // Display meta
     writeArticleMeta($discussion);
@@ -53,6 +53,7 @@ foreach ($discussions as $discussion) {
     $formatObject->Body = $text;
     $formatObject->Format = $discussion->Format;
     $text = formatBody($formatObject);
+    $text = formatArticleBodyParagraphs($text);
     echo wrap($text, 'div', array('class' => 'ArticleBody'));
 
     echo '</div>'; // End ArticleInner

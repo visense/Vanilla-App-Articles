@@ -25,3 +25,23 @@ body.Vanilla.Post #ArticleUrlCode strong,
 body.Vanilla.Post #ArticleUrlCode strong {
     color: #666;
 }
+
+#vanilla_post_editdiscussion .Preview img {
+    max-width: 100%;
+    height: auto;
+}
+
+#vanilla_post_editdiscussion .Preview .AlignLeft {
+    float: left;
+    margin: 0 10px 10px 0;
+}
+
+#vanilla_post_editdiscussion .Preview .AlignCenter {
+    margin: 0 auto;
+    display: block;
+}
+
+#vanilla_post_editdiscussion .Preview .AlignRight {
+    float: right;
+    margin: 0 0 10px 10px;
+}

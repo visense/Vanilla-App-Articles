@@ -27,3 +27,25 @@ if (!function_exists('articleUrl')) {
         return Url($result, $withDomain);
     }
 }
+
+if (!function_exists('FormatArticleBody')) {
+    /**
+     * Formats the body string of an article.
+     *
+     * @param string $text
+     * @return string
+     */
+    function formatArticleBodyParagraphs($text) {
+        // Format new lines
+        $text = preg_replace("/(\015\012)|(\015)|(\012)/", "<br />", $text);
+        $text = fixNl2Br($text);
+
+        // Convert br to paragraphs
+        $text = preg_replace('#(?:<br\s*/?>\s*?){2,}#', '</p><p>', $text);
+
+        // Add p on first paragraph
+        $text = '<p>' . $text . '</p>';
+
+        return $text;
+    }
+}
