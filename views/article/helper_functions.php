@@ -45,3 +45,36 @@ if (!function_exists('writeArticleMeta')) {
         echo '</div>';
     }
 }
+
+if (!function_exists('writeArticleAuthorInfo')) {
+    function writeArticleAuthorInfo($discussion) {
+        $author = userBuilder($discussion, isset($discussion->FirstName) ? 'First' : 'Insert');
+        $authorMeta = userModel::getMeta($author->UserID, 'Articles.%', 'Articles.');
+
+        if (c('Articles.Articles.ShowAuthorInfo', false) && (count($authorMeta) > 0) && ($authorMeta['AuthorBio'] !== '')) :
+            ?>
+            <div id="AuthorInfo" class="FormWrapper FormWrapper-Condensed BoxAfterArticle">
+                <div id="AuthorPhoto">
+                    <?php echo userPhoto($author, array('Size' => 'Medium')); ?>
+                </div>
+
+                <div id="AboutTheAuthor">
+                    <?php echo T('About the Author'); ?>
+                </div>
+
+                <h2 class="H"><?php
+                    if ($authorMeta['AuthorDisplayName'] === '') {
+                        echo userAnchor($author);
+                    } else {
+                        echo $authorMeta['AuthorDisplayName'] . ' (' . userAnchor($author) . ')';
+                    }
+                    ?></h2>
+
+                <div id="AuthorBio">
+                    <?php echo $authorMeta['AuthorBio']; ?>
+                </div>
+            </div>
+            <?php
+        endif;
+    }
+}

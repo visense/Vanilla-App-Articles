@@ -36,6 +36,9 @@ if (val('Attachments', $discussion)) {
 }
 echo "</article>";
 
+// Display author info
+writeArticleAuthorInfo($discussion);
+
 $this->fireEvent('AfterDiscussion');
 
 // Display comments

@@ -15,13 +15,13 @@ body#articles_articles_index .Article:hover .OptionsTitle {
     display: inline-block;
 }
 
-.Article {
+body#articles_articles_index .Article {
     margin-bottom: 14px;
     padding-bottom: 10px;
     border-bottom: 1px solid #DDD;
 }
 
-.Article:last-child {
+body#articles_articles_index .Article:last-child {
     margin-bottom: 0;
     padding-bottom: 0;
     border-bottom: none;
@@ -50,4 +50,22 @@ body#articles_article_index .ArticleBody {
     font-size: 110%;
     line-height: 1.7;
     word-wrap: break-word;
+}
+
+#AuthorPhoto {
+    float: left;
+    margin-right: 15px;
+}
+
+#AuthorInfo #AboutTheAuthor {
+    float: right;
+    font-weight: bold;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.28);
+    text-transform: uppercase;
+}
+
+
+#comments {
+    margin-top: 20px;
 }

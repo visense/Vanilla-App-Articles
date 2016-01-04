@@ -7,4 +7,4 @@ $Configuration['Articles']['ShowArticlesMenuLink'] = true;
 $Configuration['Articles']['Articles']['PerPage'] = 12;
 $Configuration['Articles']['Articles']['ThumbnailWidth'] = 260;
 $Configuration['Articles']['Articles']['ThumbnailHeight'] = 146;
-$Configuration['Articles']['Articles']['ShowAuthorInfo'] = false;
+$Configuration['Articles']['Articles']['ShowAuthorInfo'] = true;
