@@ -50,6 +50,19 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo $this->Form->bodyBox('Body', array('Table' => 'Discussion', 'FileUpload' => true));
     echo '</div>';
 
+    // Options
+    $options = '';
+    // If the user has any of the following permissions (regardless of junction), show the options
+    // Note: I need to validate that they have permission in the specified category on the back-end
+    // TODO: hide these boxes depending on which category is selected in the dropdown above.
+    if ($session->checkPermission('Vanilla.Discussions.Announce')) {
+        $options .= '<li>' . checkOrRadio('Announce', 'Announce', $this->data('_AnnounceOptions')) . '</li>';
+    }
+
+    $this->EventArguments['Options'] = &$options;
+    // This is located under the Body field so that Advanced Editor plugin uploads show up here
+    $this->fireEvent('DiscussionFormOptions');
+
     // Excerpt
     echo '<div class="P">';
     echo $this->Form->label('Excerpt (Optional)', 'ArticleExcerpt');
@@ -81,18 +94,7 @@ if (C('Vanilla.Categories.Use') && is_object($this->Category)) {
         'div', array('class' => 'TextBoxWrapper'));
     echo '</div>';
 
-    // Options
-    $options = '';
-    // If the user has any of the following permissions (regardless of junction), show the options
-    // Note: I need to validate that they have permission in the specified category on the back-end
-    // TODO: hide these boxes depending on which category is selected in the dropdown above.
-    if ($session->checkPermission('Vanilla.Discussions.Announce')) {
-        $options .= '<li>' . checkOrRadio('Announce', 'Announce', $this->data('_AnnounceOptions')) . '</li>';
-    }
-
-    $this->EventArguments['Options'] = &$options;
-    $this->fireEvent('DiscussionFormOptions');
-
+    // Display options
     if ($options != '') {
         echo '<div class="P">';
         echo '<ul class="List Inline PostOptions">' . $options . '</ul>';

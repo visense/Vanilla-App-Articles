@@ -76,3 +76,24 @@ body#articles_article_index .ArticleBody {
 #comments {
     margin-top: 20px;
 }
+
+.ArticleBody img,
+.ArticleThumbnail img {
+    max-width: 100%;
+    height: auto;
+}
+
+.ArticleBody .AlignLeft {
+    float: left;
+    margin: 0 10px 10px 0;
+}
+
+.ArticleBody .AlignCenter {
+    margin: 0 auto;
+    display: block;
+}
+
+.ArticleBody .AlignRight {
+    float: right;
+    margin: 0 0 10px 10px;
+}
