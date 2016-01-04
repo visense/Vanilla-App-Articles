@@ -258,6 +258,7 @@ class ArticlesHooks implements Gdn_IPlugin {
 
             $sender->addCssFile('post.css', 'articles');
             $sender->addJsFile('post.js', 'articles');
+            $sender->addJsFile('jquery.ajaxfileupload.js', 'articles');
         }
 
         // Override editdiscussion view
