@@ -9,7 +9,7 @@
 /**
  * Articles' event handlers.
  */
-class ArticlesHooks implements Gdn_IPlugin {
+class ArticlesHooks extends Gdn_Plugin {
     /**
      * Add link to the articles controller in the main menu.
      *
@@ -545,6 +545,49 @@ class ArticlesHooks implements Gdn_IPlugin {
             $articleThumbnailModel = new ArticleThumbnailModel();
             $articleThumbnailModel->setField($articleThumbnailID, 'ArticleID', $articleID);
         }
+    }
+
+    public function settingsController_articles_create($sender) {
+        $this->dispatch($sender, $sender->RequestArgs);
+    }
+
+    public function base_getAppSettingsMenuItems_handler($sender) {
+        $groupName = 'Articles';
+        $menu = &$sender->EventArguments['SideMenu'];
+
+        $menu->addItem($groupName, $groupName, false, array('class' => $groupName));
+        $menu->addLink($groupName, T('Settings'), '/settings/articles', 'Garden.Settings.Manage');
+    }
+
+    public function controller_index($sender) {
+        // Set required permission
+        $sender->permission('Garden.Settings.Manage');
+
+        // Set up the configuration module.
+        $configModule = new ConfigurationModule($sender);
+
+        $configModule->initialize(array(
+            'Articles.ShowArticlesMenuLink' => array(
+                'LabelCode' => 'Show link to Articles page in main menu?',
+                'Control' => 'Checkbox'
+            ),
+            'Articles.Articles.ShowAuthorInfo' => array(
+                'LabelCode' => 'Show author info (display name and bio) under articles?',
+                'Control' => 'Checkbox'
+            ),
+            'Articles.TwitterUsername' => array(
+                'LabelCode' => 'Enter a Twitter username associated with this website to be used for Twitter card meta tags (optional):',
+                'Control' => 'TextBox'
+            )
+        ));
+
+        $sender->ConfigurationModule = $configModule;
+
+        $sender->title(t('Articles Settings'));
+
+        $sender->addSideMenu('/settings/articles');
+        $sender->View = $sender->fetchViewLocation('articles', 'settings', 'articles');
+        $sender->render();
     }
 
     public function structure() {
