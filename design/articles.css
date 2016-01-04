@@ -52,11 +52,6 @@ body#articles_article_index .ArticleBody {
     word-wrap: break-word;
 }
 
-#AuthorPhoto {
-    float: left;
-    margin-right: 15px;
-}
-
 #AuthorInfo #AboutTheAuthor {
     float: right;
     font-weight: bold;
@@ -65,6 +60,14 @@ body#articles_article_index .ArticleBody {
     text-transform: uppercase;
 }
 
+#AuthorInfo #AuthorPhoto {
+    float: left;
+    margin-right: 15px;
+}
+
+#AuthorInfo.HasPhoto #AuthorBio {
+    overflow: hidden;
+}
 
 #comments {
     margin-top: 20px;

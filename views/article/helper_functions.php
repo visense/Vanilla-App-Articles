@@ -52,14 +52,17 @@ if (!function_exists('writeArticleAuthorInfo')) {
         $authorMeta = userModel::getMeta($author->UserID, 'Articles.%', 'Articles.');
 
         if (c('Articles.Articles.ShowAuthorInfo', false) && (count($authorMeta) > 0) && ($authorMeta['AuthorBio'] !== '')) :
-            ?>
-            <div id="AuthorInfo" class="FormWrapper FormWrapper-Condensed BoxAfterArticle">
-                <div id="AuthorPhoto">
-                    <?php echo userPhoto($author, array('Size' => 'Medium')); ?>
-                </div>
 
+            $userPhoto = userPhoto($author, array('Size' => 'Medium'));
+            $hasPhoto = $userPhoto != '';
+            ?>
+            <div id="AuthorInfo" class="FormWrapper FormWrapper-Condensed<?php echo ($hasPhoto ? ' HasPhoto' : ''); ?>">
                 <div id="AboutTheAuthor">
                     <?php echo T('About the Author'); ?>
+                </div>
+
+                <div id="AuthorPhoto">
+                    <?php echo userPhoto($author, array('Size' => 'Medium')); ?>
                 </div>
 
                 <h2 class="H"><?php

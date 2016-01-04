@@ -38,6 +38,10 @@ class ArticlesController extends VanillaController {
         // Add CSS
         $this->addCssFile('articles.css');
 
+        if (gdn::themeManager()->currentTheme() === 'mobile') {
+            $this->addCssFile('articles.mobile.css');
+        }
+
         // Add modules
         saveToConfig('Vanilla.DefaultNewButton', 'post/article', array('Save' => false));
         $this->addModule('NewDiscussionModule');

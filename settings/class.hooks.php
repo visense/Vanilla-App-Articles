@@ -16,8 +16,22 @@ class ArticlesHooks extends Gdn_Plugin {
      * @param Gdn_Controller $Sender
      */
     public function base_render_before($sender) {
-        if ($sender->Menu && c('Articles.ShowArticlesMenuLink')) {
-            $sender->Menu->addLink('Articles', T('Articles'), '/articles');
+        if ($sender->Menu) {
+            $isMobileTheme = gdn::themeManager()->currentTheme() === 'mobile';
+            $articlesIsHomepage = c('Routes.DefaultController', false) === 'articles';
+
+            if (c('Articles.ShowArticlesMenuLink') &&
+                    (!$isMobileTheme || ($isMobileTheme && !$articlesIsHomepage))) {
+                $sender->Menu->addLink('Articles', T('Articles'), '/articles');
+            }
+
+            if ($isMobileTheme && $articlesIsHomepage) {
+                if (gdn::applicationManager()->isEnabled('Vanilla')) {
+                    $sender->Menu->addLink('Discussions', T('Discussions'), '/discussions');
+                }
+                
+                $sender->Menu->addLink('Activity', T('Activity'), '/activity', 'Garden.Activity.View');
+            }
         }
     }
 

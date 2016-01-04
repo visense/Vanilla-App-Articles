@@ -39,6 +39,10 @@ class ArticleController extends VanillaController {
         // Add CSS
         $this->addCssFile('articles.css');
 
+        if (gdn::themeManager()->currentTheme() === 'mobile') {
+            $this->addCssFile('articles.mobile.css');
+        }
+
         $this->DiscussionID = $this->Discussion->DiscussionID;
 
         // Define the query offset & limit.
