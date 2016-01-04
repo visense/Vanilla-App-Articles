@@ -11,7 +11,7 @@
  */
 class ArticlesController extends VanillaController {
     /** @var arrayModels to include. */
-    public $Uses = array('DiscussionModel');
+    public $Uses = array('DiscussionModel', 'ArticleThumbnailModel');
 
     /** @var boolean Value indicating if article options should be displayed when rendering the article view. */
     public $ShowOptions;

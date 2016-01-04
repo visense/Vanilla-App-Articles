@@ -56,7 +56,7 @@ jQuery(document).ready(function ($) {
 
     if ($('#ArticleThumbnailImage').length) {
         $('#ArticleThumbnailUpload').find('label').text('Thumbnail');
-        $('#ArticleThumbnailUpload').find('.ImageUpload').hide();
+        $('#Form_ArticleThumbnail_New').hide();
     }
 
     var currentArticleID = $('#Form_ArticleID').val();
@@ -110,7 +110,7 @@ jQuery(document).ready(function ($) {
             $('#ArticleThumbnail').empty();
             $('#ArticleThumbnailID').remove();
             $('#ArticleThumbnailUpload').find('label').text(articleThumbnailUploadLabel);
-            $('#ArticleThumbnailUpload').find('.ImageUpload').show();
+            $('#Form_ArticleThumbnail_New').show();
         }
     });
 });

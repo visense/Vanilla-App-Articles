@@ -19,14 +19,27 @@ $discussions = $this->data('Discussions')->result();
 
 echo '<div class="Articles">';
 foreach ($discussions as $discussion) {
-    echo "<article id=\"Discussion_$discussion->DiscussionID\" class=\"Article_$discussion->ArticleID Article\">";
-    echo '<header>';
+    // Get thumbnail
+    $thumbnail = $this->ArticleThumbnailModel->getByArticleID($discussion->ArticleID);
+    $showThumbnail = $thumbnail && strlen($discussion->ArticleExcerpt) > 0;
+    $thumbnailClass = $showThumbnail ? ' HasThumbnail' : '';
+
+    echo "<article id=\"Discussion_$discussion->DiscussionID\" class=\"Article_$discussion->ArticleID Article$thumbnailClass\">";
     // Display options
     echo '<span class="Options">';
     echo optionsList($discussion);
     echo bookmarkButton($discussion);
     echo '</span>';
 
+    // Display thumbnail
+    if ($showThumbnail) {
+        $thumbnailPath = '/uploads' . $thumbnail->Path;
+
+        echo wrap(Anchor(Img($thumbnailPath, array('title' => $discussion->Name)), articleUrl($discussion)), 'div', array('class' => 'ArticleThumbnail'));
+    }
+
+    echo '<div class="ArticleInner">';
+    echo '<header>';
     // Display article header
     echo wrap("<h2>" . Anchor($discussion->Name, articleUrl($discussion)) . "</h2>", 'header');
 
@@ -38,9 +51,11 @@ foreach ($discussions as $discussion) {
     $text = (strlen($discussion->ArticleExcerpt) > 0) ? $discussion->ArticleExcerpt : $discussion->Body;
     $formatObject = new stdClass();
     $formatObject->Body = $text;
+    $formatObject->Format = $discussion->Format;
     $text = formatBody($formatObject);
     echo wrap($text, 'div', array('class' => 'ArticleBody'));
 
+    echo '</div>'; // End ArticleInner
     echo '</article>';
 }
 echo '</div>';

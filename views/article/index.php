@@ -27,12 +27,12 @@ echo '</header>';
 $this->fireEvent('AfterDiscussionTitle');
 $this->fireEvent('AfterPageTitle');
 
-echo Wrap(formatBody($discussion), 'div', array('class' => 'ArticleBody'));
+echo wrap(formatBody($discussion), 'div', array('class' => 'ArticleBody'));
 
 $this->fireEvent('AfterDiscussionBody');
-WriteReactions($discussion);
+writeReactions($discussion);
 if (val('Attachments', $discussion)) {
-    WriteAttachments($discussion->Attachments);
+    writeAttachments($discussion->Attachments);
 }
 echo "</article>";
 

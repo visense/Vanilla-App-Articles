@@ -27,6 +27,20 @@ body#articles_articles_index .Article:hover .OptionsTitle {
     border-bottom: none;
 }
 
+body#articles_articles_index .Article.HasThumbnail {
+    display: inline-block;
+    width: 100%;
+}
+
+body#articles_articles_index .Article.HasThumbnail .ArticleThumbnail {
+    float: left;
+    margin-right: 15px;
+}
+
+body#articles_articles_index .Article.HasThumbnail .ArticleInner {
+    overflow: hidden;
+}
+
 .ArticleBody {
     padding: 4px 0;
 }
