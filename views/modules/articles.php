@@ -1,6 +1,4 @@
-<?php if (!defined('APPLICATION')) {
-    exit();
-}
+<?php defined('APPLICATION') or exit();
 
 if (!function_exists('BookmarkButton')) {
     require_once Gdn::controller()->fetchViewLocation('helper_functions', 'discussions', 'vanilla');
@@ -16,12 +14,16 @@ if (!isset($this->Prefix)) {
         <?php
         foreach ($this->data('Discussions')->result() as $Discussion):
             ?>
-            <li id="<?php echo "{$Px}_{$Discussion->DiscussionID}"; ?>" class="<?php echo CssClass($Discussion); ?>">
+            <li id="<?php echo "{$this->Prefix}_{$Discussion->DiscussionID}"; ?>"
+                class="<?php echo cssClass($Discussion); ?>">
                <span class="Options">
-                  <?php echo BookmarkButton($Discussion); ?>
+                  <?php echo bookmarkButton($Discussion); ?>
                </span>
                 <div class="Title"><?php
-                    echo Anchor(Gdn_Format::Text($Discussion->Name, false), DiscussionUrl($Discussion) . ($Discussion->CountCommentWatch > 0 ? '#Item_' . $Discussion->CountCommentWatch : ''), 'DiscussionLink');
+                    echo anchor(Gdn_Format::text($Discussion->Name, false),
+                        discussionUrl($Discussion) . ($Discussion->CountCommentWatch > 0
+                            ? '#Item_' . $Discussion->CountCommentWatch : ''),
+                        'DiscussionLink');
                     ?></div>
                 <div class="Meta">
                     <?php
@@ -29,9 +31,10 @@ if (!isset($this->Prefix)) {
                     $First->UserID = $Discussion->FirstUserID;
                     $First->Name = $Discussion->FirstName;
 
-                    echo NewComments($Discussion);
+                    echo newComments($Discussion);
 
-                    echo '<span class="MItem">' . Gdn_Format::Date($Discussion->FirstDate, 'html') . UserAnchor($First) . '</span>';
+                    echo '<span class="MItem">' . Gdn_Format::date($Discussion->FirstDate,
+                            'html') . userAnchor($First) . '</span>';
                     ?>
                 </div>
             </li>

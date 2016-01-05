@@ -10,20 +10,22 @@ if (!function_exists('writeArticleMeta')) {
         if (strtolower(Gdn::controller()->ControllerName) === 'articlescontroller') {
             writeTags($discussion);
 
-            echo NewComments($discussion);
+            echo newComments($discussion);
         }
 
         // Category
         if (c('Vanilla.Categories.Use') && $category) {
-            echo wrap(Anchor(htmlspecialchars($discussion->Category), categoryUrl($discussion->CategoryUrlCode)), 'span', array('class' => 'MItem Category ' . $category['CssClass']));
+            echo wrap(anchor(htmlspecialchars($discussion->Category), categoryUrl($discussion->CategoryUrlCode)),
+                'span', array('class' => 'MItem Category ' . $category['CssClass']));
         }
 
         // Date
-        echo ' <span class="MItem Date">' . Gdn_Format::date($discussion->DateInserted, '%e %B %Y - %l:%M %p') . '</span>';
+        echo ' <span class="MItem Date">' . Gdn_Format::date($discussion->DateInserted,
+                '%e %B %Y - %l:%M %p') . '</span>';
 
         // Author
         // Get author display name
-        $authorMeta = userModel::getMeta($author->UserID, 'Articles.%', 'Articles.');
+        $authorMeta = UserModel::getMeta($author->UserID, 'Articles.%', 'Articles.');
         $authorOptions = array();
         if ($authorMeta['AuthorDisplayName'] != "") {
             $authorOptions['Text'] = $authorMeta['AuthorDisplayName'];
@@ -36,7 +38,8 @@ if (!function_exists('writeArticleMeta')) {
         echo '<span class="MItem MCount CommentCount">';
         $commentsText = ($discussion->CountComments == 0) ? t('Comments')
             : sprintf(
-                pluralTranslate($discussion->CountComments, '%s comment html', '%s comments html', t('%s comment'), t('%s comments')),
+                pluralTranslate($discussion->CountComments, '%s comment html', '%s comments html', t('%s comment'),
+                    t('%s comments')),
                 bigPlural($discussion->CountComments, '%s comment')
             );
 
@@ -49,16 +52,18 @@ if (!function_exists('writeArticleMeta')) {
 if (!function_exists('writeArticleAuthorInfo')) {
     function writeArticleAuthorInfo($discussion) {
         $author = userBuilder($discussion, isset($discussion->FirstName) ? 'First' : 'Insert');
-        $authorMeta = userModel::getMeta($author->UserID, 'Articles.%', 'Articles.');
+        $authorMeta = UserModel::getMeta($author->UserID, 'Articles.%', 'Articles.');
 
-        if (c('Articles.Articles.ShowAuthorInfo', false) && (count($authorMeta) > 0) && ($authorMeta['AuthorBio'] !== '')) :
+        if (c('Articles.Articles.ShowAuthorInfo',
+                false) && (count($authorMeta) > 0) && ($authorMeta['AuthorBio'] !== '')
+        ) :
 
             $userPhoto = userPhoto($author, array('Size' => 'Medium'));
             $hasPhoto = $userPhoto != '';
             ?>
-            <div id="AuthorInfo" class="FormWrapper FormWrapper-Condensed<?php echo ($hasPhoto ? ' HasPhoto' : ''); ?>">
+            <div id="AuthorInfo" class="FormWrapper FormWrapper-Condensed<?php echo($hasPhoto ? ' HasPhoto' : ''); ?>">
                 <div id="AboutTheAuthor">
-                    <?php echo T('About the Author'); ?>
+                    <?php echo t('About the Author'); ?>
                 </div>
 
                 <div id="AuthorPhoto">

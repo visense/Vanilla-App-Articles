@@ -19,7 +19,7 @@ writeDiscussionOptions();
 writeAdminCheck();
 echo '</div>';
 
-echo Wrap($discussion->Name, 'h1');
+echo wrap($discussion->Name, 'h1');
 
 writeArticleMeta($discussion);
 echo '</header>';

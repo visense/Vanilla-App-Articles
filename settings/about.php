@@ -2,13 +2,13 @@
 /**
  * An associative array of information about this application.
  *
- * @copyright 2015 Austin S.
+ * @copyright 2015-2016 Austin S.
  * @license http://www.opensource.org/licenses/gpl-2.0.php GNU GPL v2
  */
 
 $ApplicationInfo['Articles'] = array(
     'Description' => 'Provides a way to create articles.',
-    'Version' => '2.0.0a1',
+    'Version' => '2.0.0a2',
     'Author' => 'Austin S.',
     'AuthorUrl' => 'https://github.com/austins',
     'Url' => 'http://vanillaforums.org/addon/articles-application',

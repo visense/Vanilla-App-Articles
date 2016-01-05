@@ -10,14 +10,14 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    // UrlCode: Make sure not to override any values set by the user
+    // ArticleUrlCode: Make sure not to override any values set by the user
     $('#ArticleUrlCode').find('span').text($('#ArticleUrlCode').find('input').val());
     $("#Form_ArticleUrlCode").focus(function () {
         $('#Form_ArticleUrlCodeDefined').val('1')
     });
     $('#ArticleUrlCode input, #ArticleUrlCode a.Save').hide();
 
-    // UrlCode: Reveal input when "change" button is clicked
+    // ArticleUrlCode: Reveal input when "change" button is clicked
     $('#ArticleUrlCode a, #ArticleUrlCode span').click(function () {
         $('#ArticleUrlCode').find('input,span,a').toggle();
         $('#ArticleUrlCode').find('span').text($('#ArticleUrlCode').find('input').val());
@@ -65,7 +65,8 @@ jQuery(document).ready(function ($) {
         $('#Form_ArticleThumbnail_New').ajaxfileupload({
             'action': gdn.url('/post/uploadarticlethumbnail?DeliveryMethod=JSON&DeliveryType=VIEW'),
             'params': {'ArticleID': currentArticleID},
-            'onComplete': function (response) { console.log(response);
+            'onComplete': function (response) {
+                console.log(response);
                 // Reset the file upload field.
                 $(this).wrap('<form>').closest('form').get(0).reset();
                 $(this).unwrap();
@@ -75,9 +76,11 @@ jQuery(document).ready(function ($) {
                 var imagePath = gdn.url('/uploads' + response.Path);
 
                 // Show new image in form.
-                $('#ArticleThumbnail').append('<div id="ArticleThumbnailImage"><img src="' + imagePath + '" alt="" /></div>' +
-                    '<div id="ArticleThumbnailActions"><a id="DeleteArticleThumbnail" href="' + gdn.url('/post/deletearticlethumbnail/'
-                        + response.ArticleThumbnailID) + '?DeliveryMethod=JSON&DeliveryType=BOOL">Delete</a></div>');
+                $('#ArticleThumbnail')
+                    .append('<div id="ArticleThumbnailImage"><img src="' + imagePath + '" alt="" /></div>' +
+                        '<div id="ArticleThumbnailActions"><a id="DeleteArticleThumbnail" href="'
+                        + gdn.url('/post/deletearticlethumbnail/' + response.ArticleThumbnailID)
+                        + '?DeliveryMethod=JSON&DeliveryType=BOOL">Delete</a></div>');
 
                 // Add new image to hidden form field to be passed to the controller.
                 var ArticleThumbnailID = createCustomElement('input', {
@@ -98,6 +101,7 @@ jQuery(document).ready(function ($) {
         });
     }
 
+    // Handle action of deleting article thumbnail
     $('#DeleteArticleThumbnail').popup({
         confirm: true,
         confirmHeading: gdn.definition('ConfirmDeleteImageHeading', 'Delete Thumbnail'),

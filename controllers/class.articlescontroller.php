@@ -2,7 +2,7 @@
 /**
  * Articles controller
  *
- * @copyright 2015 Austin S.
+ * @copyright 2015-2016 Austin S.
  * @license http://www.opensource.org/licenses/gpl-2.0.php GNU GPL v2
  */
 
@@ -12,6 +12,9 @@
 class ArticlesController extends VanillaController {
     /** @var arrayModels to include. */
     public $Uses = array('DiscussionModel', 'ArticleThumbnailModel');
+
+    /** @var DiscussionModel */
+    public $DiscussionModel;
 
     /** @var boolean Value indicating if article options should be displayed when rendering the article view. */
     public $ShowOptions;
@@ -25,7 +28,8 @@ class ArticlesController extends VanillaController {
         // Setup head
         if (!$this->data('Title')) {
             $title = c('Garden.HomepageTitle');
-            $defaultControllerRoute = val('Destination', Gdn::router()->GetRoute('DefaultController'));
+            $defaultControllerRoute = val('Destination', Gdn::router()->getRoute('DefaultController'));
+
             if ($title && ($defaultControllerRoute == 'articles')) {
                 $this->title($title, '');
             } else {
@@ -38,7 +42,7 @@ class ArticlesController extends VanillaController {
         // Add CSS
         $this->addCssFile('articles.css');
 
-        if (gdn::themeManager()->currentTheme() === 'mobile') {
+        if (Gdn::themeManager()->currentTheme() === 'mobile') {
             $this->addCssFile('articles.mobile.css');
         }
 
@@ -62,7 +66,7 @@ class ArticlesController extends VanillaController {
         $this->fireEvent('AfterPageCalculation');
 
         // Set canonical URL
-        $this->canonicalUrl(url(ConcatSep('/', 'articles', pageNumber($offset, $limit, true, false)), true));
+        $this->canonicalUrl(url(concatSep('/', 'articles', pageNumber($offset, $limit, true, false)), true));
 
         // Get articles
         $wheres = array('d.Type' => 'Article', 'd.Announce' => 'all');
@@ -88,8 +92,9 @@ class ArticlesController extends VanillaController {
         $this->setData('_Limit', $limit);
         $this->fireEvent('AfterBuildPager');
 
-        // Render
         $this->setData('Breadcrumbs', array(array('Name' => t('Articles'), 'Url' => '/articles')));
+
+        // Render
         $this->render();
     }
 }

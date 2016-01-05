@@ -10,7 +10,8 @@ if (!function_exists('optionsList')) {
     include $this->fetchViewLocation('helper_functions', 'discussions', 'vanilla');
 }
 
-$pagerOptions = array('Wrapper' => '<span class="PagerNub">&#160;</span><div %1$s>%2$s</div>', 'RecordCount' => $this->data('CountDiscussions'), 'CurrentRecords' => $this->data('Discussions')->numRows());
+$pagerOptions = array('Wrapper' => '<span class="PagerNub">&#160;</span><div %1$s>%2$s</div>',
+    'RecordCount' => $this->data('CountDiscussions'), 'CurrentRecords' => $this->data('Discussions')->numRows());
 if ($this->data('_PagerUrl')) {
     $pagerOptions['Url'] = $this->data('_PagerUrl');
 }
@@ -24,7 +25,8 @@ foreach ($discussions as $discussion) {
     $showThumbnail = $thumbnail && strlen($discussion->ArticleExcerpt) > 0;
     $thumbnailClass = $showThumbnail ? ' HasThumbnail' : '';
 
-    echo "<article id=\"Discussion_$discussion->DiscussionID\" class=\"Article_$discussion->ArticleID Article$thumbnailClass\">";
+    echo "<article id=\"Discussion_$discussion->DiscussionID\""
+        . " class=\"Article_$discussion->ArticleID Article$thumbnailClass\">";
     // Display options
     echo '<span class="Options">';
     echo optionsList($discussion);
@@ -35,13 +37,14 @@ foreach ($discussions as $discussion) {
     if ($showThumbnail) {
         $thumbnailPath = '/uploads' . $thumbnail->Path;
 
-        echo wrap(Anchor(Img($thumbnailPath, array('title' => $discussion->Name)), articleUrl($discussion)), 'div', array('class' => 'ArticleThumbnail'));
+        echo wrap(anchor(img($thumbnailPath, array('title' => $discussion->Name)), articleUrl($discussion)), 'div',
+            array('class' => 'ArticleThumbnail'));
     }
 
     echo '<div class="ArticleInner">';
     echo '<header>';
     // Display article header
-    echo "<h2>" . Anchor($discussion->Name, articleUrl($discussion)) . "</h2>";
+    echo "<h2>" . anchor($discussion->Name, articleUrl($discussion)) . "</h2>";
 
     // Display meta
     writeArticleMeta($discussion);

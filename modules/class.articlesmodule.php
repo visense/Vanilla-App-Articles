@@ -1,35 +1,34 @@
 <?php
 /**
- * Discussions module
+ * Articles module
  *
- * @copyright 2009-2015 Vanilla Forums Inc.
+ * @copyright 2015-2016 Austin S.
  * @license http://www.opensource.org/licenses/gpl-2.0.php GNU GPL v2
- * @package Vanilla
- * @since 2.0
  */
 
 /**
- * Renders recently active discussions
+ * Renders recently posted articles
  */
 class ArticlesModule extends Gdn_Module {
-
     /** @var int Display limit. */
     public $Limit = 5;
 
-    /** @var string  */
+    /** @var string */
     public $Prefix = 'Discussion';
 
     /** @var array Limit the discussions to just this list of categories, checked for view permission. */
-    protected $categoryIDs;
+    protected $CategoryIDs;
 
     /**
-     *
+     * Initializes class
      *
      * @throws Exception
      */
     public function __construct() {
         parent::__construct();
+
         $this->_ApplicationFolder = 'articles';
+
         $this->fireEvent('Init');
     }
 
@@ -45,8 +44,9 @@ class ArticlesModule extends Gdn_Module {
 
         $discussionModel = new DiscussionModel();
 
-        // Let DiscussionModel know that the sender is the ArticlesModule
-        // Used by discussionModel_beforeGet_handler() method to only show non-article discussions when viewing ArticleController
+        // Let DiscussionModel know that the sender is the ArticlesModule.
+        // Used by discussionModel_beforeGet_handler() method to only
+        // show non-article discussions when viewing ArticleController.
         $discussionModel->Module = 'ArticlesModule';
 
         $categoryIDs = $this->getCategoryIDs();
@@ -66,16 +66,26 @@ class ArticlesModule extends Gdn_Module {
         $this->setData('Discussions', $discussionModel->get(0, $limit, $where));
     }
 
+    /**
+     * Defines asset to display module in.
+     *
+     * @return string
+     */
     public function assetTarget() {
         return 'Panel';
     }
 
+    /**
+     * Renders the module.
+     *
+     * @return string
+     */
     public function toString() {
         if (!$this->data('Discussions')) {
-            $this->GetData();
+            $this->getData();
         }
 
-        return parent::ToString();
+        return parent::toString();
     }
 
     /**
@@ -84,7 +94,7 @@ class ArticlesModule extends Gdn_Module {
      * @return array
      */
     public function getCategoryIDs() {
-        return $this->categoryIDs;
+        return $this->CategoryIDs;
     }
 
     /**
@@ -93,6 +103,6 @@ class ArticlesModule extends Gdn_Module {
      * @param array $categoryIDs
      */
     public function setCategoryIDs($categoryIDs) {
-        $this->categoryIDs = $categoryIDs;
+        $this->CategoryIDs = $categoryIDs;
     }
 }

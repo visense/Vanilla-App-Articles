@@ -2,7 +2,7 @@
 /**
  * ArticlesHooks Plugin
  *
- * @copyright 2015 Austin S.
+ * @copyright 2015-2016 Austin S.
  * @license http://www.opensource.org/licenses/gpl-2.0.php GNU GPL v2
  */
 
@@ -13,56 +13,84 @@ class ArticlesHooks extends Gdn_Plugin {
     /**
      * Add link to the articles controller in the main menu.
      *
-     * @param Gdn_Controller $Sender
+     * @param Gdn_Controller $sender
      */
     public function base_render_before($sender) {
         if ($sender->Menu) {
-            $isMobileTheme = gdn::themeManager()->currentTheme() === 'mobile';
+            $isMobileTheme = Gdn::themeManager()->currentTheme() === 'mobile';
             $articlesIsHomepage = c('Routes.DefaultController', false) === 'articles';
 
+            // Add link to the articles controller
             if (c('Articles.ShowArticlesMenuLink') &&
-                    (!$isMobileTheme || ($isMobileTheme && !$articlesIsHomepage))) {
-                $sender->Menu->addLink('Articles', T('Articles'), '/articles');
+                (!$isMobileTheme || ($isMobileTheme && !$articlesIsHomepage))
+            ) {
+                $sender->Menu->addLink('Articles', t('Articles'), '/articles');
             }
 
+            // Add extra links to the mobile theme if articles is set as the homepage
             if ($isMobileTheme && $articlesIsHomepage) {
-                if (gdn::applicationManager()->isEnabled('Vanilla')) {
-                    $sender->Menu->addLink('Discussions', T('Discussions'), '/discussions');
+                if (Gdn::applicationManager()->isEnabled('Vanilla')) {
+                    $sender->Menu->addLink('Discussions', t('Discussions'), '/discussions');
                 }
 
-                $sender->Menu->addLink('Activity', T('Activity'), '/activity', 'Garden.Activity.View');
+                $sender->Menu->addLink('Activity', t('Activity'), '/activity', 'Garden.Activity.View');
             }
+        }
+    }
+
+    /**
+     * Add link to the articles controller in the discussion filter module.
+     *
+     * @param Gdn_Controller $sender
+     */
+    public function base_beforeDiscussionFilters_handler($sender) {
+        if (c('Articles.ShowArticlesMenuLink')) {
+            echo '<li class="Articles' . (strtolower($sender->ControllerName) == 'articlescontroller'
+                && strtolower($sender->RequestMethod) == 'index' ? ' Active' : '') . '">'
+                . anchor(sprite('SpArticles') . ' ' . t('Articles'), '/articles') . '</li>';
         }
     }
 
     /**
      * Show article tag in discussion indexes.
      *
-     * @param Gdn_Controller $sender The controller.
-     * @param array $args Event arguments.
+     * @param Gdn_Controller $sender
+     * @param array $args Event arguments
      */
     public function base_beforeDiscussionMeta_handler($sender, $args) {
         if (strtolower($sender->ControllerName) !== 'articlescontroller') {
             $discussion = $args['Discussion'];
 
             if (ArticleModel::isArticle($discussion)) {
-                echo ' <span class="Tag Article-Tag">' . T("Article") . '</span> ';
+                echo ' <span class="Tag Article-Tag">' . t("Article") . '</span> ';
             }
         }
     }
 
+    /**
+     * Override the "Delete Discussion" option text with "Delete Article"
+     *
+     * @param DiscussionController $sender
+     * @param array $args Event arguments
+     */
     public function discussionController_discussionOptions_handler($sender, $args) {
         if (ArticleModel::isArticle($args['Discussion'])) {
             $args['DiscussionOptions']['DeleteDiscussion']['Label'] = t('Delete Article');
         }
     }
 
+    /**
+     * Show the author display name, if the user has one, next to their username in the article comments.
+     *
+     * @param DiscussionController $sender
+     * @param array $args Event arguments
+     */
     public function discussionController_authorInfo_handler($sender, $args) {
         if (ArticleModel::isArticle($args['Discussion'])) {
             $commentAuthor = $args['Author'];
 
             // Get author display name
-            $authorMeta = userModel::getMeta($commentAuthor->UserID, 'Articles.%', 'Articles.');
+            $authorMeta = UserModel::getMeta($commentAuthor->UserID, 'Articles.%', 'Articles.');
             $authorDisplayName = $authorMeta['AuthorDisplayName'] != '' ? $authorMeta['AuthorDisplayName'] : false;
 
             if ($authorDisplayName) {
@@ -71,6 +99,11 @@ class ArticlesHooks extends Gdn_Plugin {
         }
     }
 
+    /**
+     * Override the delete discussion texts with delete article texts and add articles module to the discussion view.
+     *
+     * @param DiscussionController $sender
+     */
     public function discussionController_render_before($sender) {
         if (strtolower($sender->RequestMethod) === 'delete'
             && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])
@@ -78,26 +111,28 @@ class ArticlesHooks extends Gdn_Plugin {
             // Override delete discussion page translations
             $sender->title(t('Delete Article'));
 
-            Gdn::locale()->setTranslation('Are you sure you want to delete this %s?', sprintf(t('Are you sure you want to delete this %s?'), t('article')), false);
+            Gdn::locale()->setTranslation('Are you sure you want to delete this %s?',
+                sprintf(t('Are you sure you want to delete this %s?'), t('article')), false);
         } else {
-            if (strtolower($sender->RequestMethod) === 'index'
-                && ArticleModel::isArticle($sender->data('Discussion'))
+            if (strtolower($sender->RequestMethod) === 'index' && !ArticleModel::isArticle($sender->data('Discussion'))
             ) {
-                // DiscussionController->Index() method for discussion of type article
-            } else {
+                // Add Articles module to non-article type discussion view
                 $sender->addModule('ArticlesModule');
             }
         }
     }
 
+    /**
+     * Override the getData() method of the DiscussionsModule to pass an identifier property to the DiscussionModel.
+     *
+     * @param DiscussionsModule $sender
+     */
     public function discussionsModule_init_handler($sender) {
-        $controllerName = strtolower(Gdn::controller()->ControllerName);
-
-        //if ($controllerName === 'articlescontroller') {
         $discussionModel = new DiscussionModel();
 
-        // Let DiscussionModel know that the sender is the DiscussionsModule
-        // Used by discussionModel_beforeGet_handler() method to only show non-article discussions when viewing ArticlesController
+        // Let DiscussionModel know that the sender is the DiscussionsModule.
+        // Used by discussionModel_beforeGet_handler() method to only show
+        // non-article discussions when viewing ArticlesController.
         $discussionModel->Module = 'DiscussionsModule';
 
         $categoryIDs = $sender->getCategoryIDs();
@@ -110,23 +145,22 @@ class ArticlesHooks extends Gdn_Plugin {
         }
 
         $sender->setData('Discussions', $discussionModel->get(0, $sender->Limit, $where));
-        //}
     }
 
+    /**
+     * Modify the sort criteria of the index and wheres of the Discussions and Articles module.
+     *
+     * @param DiscussionModel $sender
+     * @param array $args Event arguments
+     */
     public function discussionModel_beforeGet_handler($sender, $args) {
-//        // Hide discussions with article type from indexes.
-//        if (!isset($args['Wheres']['d.Type'])) {
-//            $sender->SQL->where('d.Type <>', 'Article');
-//            $sender->SQL->orWhere('d.Type', null);
-//        }
-
         $controller = Gdn::controller();
         $controllerName = strtolower($controller->ControllerName);
 
         $senderIsDiscussionsModule = isset($sender->Module) && $sender->Module === 'DiscussionsModule';
         $senderIsArticlesModule = isset($sender->Module) && $sender->Module === 'ArticlesModule';
 
-        // Always show latest article on top in ArticlesController
+        // Always show latest article first in ArticlesController
         if (($controllerName === 'articlescontroller' && !$senderIsDiscussionsModule)
             || ($controllerName === 'discussioncontroller' && $senderIsArticlesModule)
         ) {
@@ -137,7 +171,7 @@ class ArticlesHooks extends Gdn_Plugin {
         // Only show discussions of type article in Recent Articles module
         if ($controllerName === 'articlescontroller' && $senderIsDiscussionsModule) {
             $sender->SQL->where('d.Type', 'Article');
-            $sender->SQL->Where('d.CountComments >', 0);
+            $sender->SQL->where('d.CountComments >', 0);
             $sender->SQL->orWhere('d.Type', null);
         } else {
             if ($controllerName === 'discussioncontroller' && $senderIsArticlesModule) {
@@ -150,10 +184,16 @@ class ArticlesHooks extends Gdn_Plugin {
         }
     }
 
+    /**
+     * Join article data with discussion results and change discussion URL in index view.
+     *
+     * @param DiscussionModel $sender
+     * @param array $args Event arguments
+     */
     public function discussionModel_setCalculatedFields_handler($sender, $args) {
         $discussion = &$args['Discussion'];
 
-        // If discussion is of type 'Article'
+        // If discussion is of type 'article'
         if (ArticleModel::isArticle($discussion)) {
             // Join discussion with article data if not already joined
             if (!val('ArticleID', $discussion, false)) {
@@ -164,14 +204,19 @@ class ArticlesHooks extends Gdn_Plugin {
             // Must be called after discussion has been joined with article data (to retrieve UrlCode)
             $discussion->Url = articleUrl($discussion);
         }
-
-        //
     }
 
+    /**
+     * Handle deletion of article thumbnail entity and article entity when a discussion of type article is deleted.
+     *
+     * @param DiscussionModel $sender
+     * @param array $args Event arguments
+     */
     public function discussionModel_deleteDiscussion_handler($sender, $args) {
         if (ArticleModel::isArticle($args['Discussion'])) {
             $discussionID = $args['DiscussionID'];
 
+            // Retrieve article
             $articleModel = new ArticleModel();
             $article = $articleModel->getByDiscussionID($discussionID);
 
@@ -184,28 +229,16 @@ class ArticlesHooks extends Gdn_Plugin {
         }
     }
 
-//    public function discussionModel_AfterAddColumns_handler($sender, $args) {
-//        // Join article data
-//        $data = &$args['Data'];
-//        if ($data instanceof Gdn_DataSet) {
-//            $data2 = $data->result();
-//        } else {
-//            $data2 = &$data;
-//        }
-//
-//        foreach ($data2 as &$discussion) {
-//            if (strtolower(val('Type', $discussion)) === 'article' && !val('ArticleID', $discussion, false)) {
-//                ArticleModel::joinArticle($discussion, val('DiscussionID', $discussion));
-//            }
-//        }
-//    }
-
-
+    /**
+     * Redirect discussion of type article to article controller.
+     *
+     * @param DiscussionController $sender
+     */
     public function discussionController_beforeDiscussionRender_handler($sender) {
         $discussion = $sender->data('Discussion');
 
         if (ArticleModel::isArticle($discussion)) {
-            // Redirect discussion to article controller
+            // Redirect discussion of type article to article controller
             redirect(articleUrl($discussion));
         }
     }
@@ -213,8 +246,8 @@ class ArticlesHooks extends Gdn_Plugin {
     /**
      * Add the article discussion type.
      *
-     * @param Gdn_PluginManager $sender Event sender.
-     * @param array $args Event arguments.
+     * @param DiscussionModel $sender
+     * @param array $args Event arguments
      */
     public function base_discussionTypes_handler($sender, &$args) {
         $args['Types']['Article'] = array(
@@ -228,39 +261,31 @@ class ArticlesHooks extends Gdn_Plugin {
     /**
      * Add the article form to Vanilla's post page.
      *
-     * @param PostController $sender Event sender.
+     * @param PostController $sender
      */
     public function postController_afterForms_handler($sender) {
-        $forms = $sender->Data('Forms');
-        $forms[] = array('Name' => 'Article', 'Label' => Sprite('SpArticle') . T('Compose Article'), 'Url' => 'post/article');
+        $forms = $sender->data('Forms');
+        $forms[] = array('Name' => 'Article', 'Label' => sprite('SpArticle') . t('Compose Article'),
+            'Url' => 'post/article');
         $sender->setData('Forms', $forms);
-    }
-
-    public function base_beforeDiscussionFilters_handler($sender) {
-        if (c('Articles.ShowArticlesMenuLink')) {
-            echo '<li class="Articles' . (strtolower($sender->ControllerName) == 'articlescontroller'
-                && strtolower($sender->RequestMethod) == 'index' ? ' Active' : '') . '">'
-                . anchor(sprite('SpArticles') . ' ' . t('Articles'), '/articles') . '</li>';
-        }
     }
 
     /**
      * Create the new article method on post controller.
      *
-     * @param PostController $sender Event sender.
+     * @param PostController $sender
      * @param string $categoryUrlCode URL code for current category.
      */
     public function postController_article_create($sender, $categoryUrlCode = '') {
-        // Create & call PostController->Discussion()
         $sender->View = PATH_APPLICATIONS . '/articles/views/post/article.php';
         $sender->setData('Type', 'Article');
         $sender->discussion($categoryUrlCode);
     }
 
     /**
-     * Override the PostController->Discussion() method before render to use our view instead.
+     * Set up the form for the PostController->Article() method.
      *
-     * @param PostController $sender Event sender.
+     * @param PostController $sender
      */
     public function postController_beforeDiscussionRender_handler($sender) {
         // Override if we are looking at the article URL
@@ -270,7 +295,7 @@ class ArticlesHooks extends Gdn_Plugin {
 
         if ($sender->RequestMethod === 'article' || $editingArticle) {
             $sender->Form->addHidden('Type', 'Article');
-            $sender->title($editingArticle ? T('Edit Article') : T('Compose Article'));
+            $sender->title($editingArticle ? t('Edit Article') : t('Compose Article'));
 
             if ($editingArticle) {
                 // If editing
@@ -301,6 +326,11 @@ class ArticlesHooks extends Gdn_Plugin {
         }
     }
 
+    /**
+     * Add assets to the PostController->Article() method and override editdiscussion view.
+     *
+     * @param PostController $sender
+     */
     public function postController_render_before($sender) {
         $editingArticle = strtolower($sender->RequestMethod) === 'editdiscussion'
             && strtolower($sender->data('Type')) === 'article'
@@ -308,7 +338,7 @@ class ArticlesHooks extends Gdn_Plugin {
 
         // Add CSS and JS assets to article methods
         if (strtolower($sender->RequestMethod) === 'article' || $editingArticle) {
-            $sender->AddJsFile('jquery.autocomplete.js');
+            $sender->addJsFile('jquery.autocomplete.js');
 
             $sender->addCssFile('post.css', 'articles');
             $sender->addJsFile('post.js', 'articles');
@@ -321,9 +351,11 @@ class ArticlesHooks extends Gdn_Plugin {
             $sender->title(t('Edit Article'));
 
             // Override editdiscussion breadcrumb link
-            $breadcrumbs = $sender->Data('Breadcrumbs');
+            $breadcrumbs = $sender->data('Breadcrumbs');
 
-            if (isset($breadcrumbs[count($breadcrumbs)]) && $breadcrumbs[count($breadcrumbs)]['Url'] === '/post/discussion') {
+            if (isset($breadcrumbs[count($breadcrumbs)])
+                && $breadcrumbs[count($breadcrumbs)]['Url'] === '/post/discussion'
+            ) {
                 $breadcrumbs[count($breadcrumbs)]['Url'] = '/post/article';
             }
 
@@ -334,14 +366,14 @@ class ArticlesHooks extends Gdn_Plugin {
     /**
      * Allows the user to upload an image to an article via AJAX.
      *
-     * @return false on failure
-     * @throws NotFoundException if no files posted
-     * @throws PermissionException if user doesn't have permission to upload
+     * @param PostController $sender
+     * @return array|bool thumbnail data; false on failure
+     * @throws Exception if no files posted; if image is invalid
      */
     public function postController_uploadArticleThumbnail_create($sender) {
         // Check for file data
         if (!$_FILES) {
-            throw NotFoundException('Page');
+            throw notFoundException('Page');
         }
 
         // Check permission
@@ -433,20 +465,23 @@ class ArticlesHooks extends Gdn_Plugin {
     }
 
     /**
-     * Allows the user to delete an image from an article.
+     * Allows the user to delete an image from an article via AJAX.
      *
+     * @param PostController $sender
      * @param int $articleThumbnailID
-     * @throws NotFoundException if invalid articleThumbnailID
-     * @throws PermissionException if user doesn't have permission to upload
+     * @throws Exception if invalid articleThumbnailID
      */
     public function postController_deleteArticleThumbnail_create($sender, $articleThumbnailID) {
-        if (!is_numeric($articleThumbnailID) || $sender->deliveryMethod() != DELIVERY_METHOD_JSON || $sender->deliveryType() != DELIVERY_TYPE_BOOL) {
+        if (!is_numeric($articleThumbnailID) || $sender->deliveryMethod() != DELIVERY_METHOD_JSON
+            || $sender->deliveryType() != DELIVERY_TYPE_BOOL
+        ) {
             throw notFoundException('Page');
         }
 
         // Check permission
         $sender->permission('Vanilla.Discussions.Add');
 
+        // Retrieve thumbnail
         $articleThumbnailModel = new ArticleThumbnailModel();
         $thumbnail = $articleThumbnailModel->getID($articleThumbnailID);
         if (!$thumbnail) {
@@ -462,6 +497,12 @@ class ArticlesHooks extends Gdn_Plugin {
         $sender->render('Blank', 'Utility', 'Dashboard');
     }
 
+    /**
+     * Validate form input before saving discussion.
+     *
+     * @param DiscussionModel $sender
+     * @param array $args Event arguments
+     */
     public function discussionModel_beforeSaveDiscussion_handler($sender, $args) {
         // Do validation of inputs before saving discussion
         $formPostValues = &$args['FormPostValues'];
@@ -481,23 +522,35 @@ class ArticlesHooks extends Gdn_Plugin {
             $article = $articleModel->getByUrlCode($urlCode);
 
             // If URL code exists in the table, and if editing a discussion, is not attached to the discussion ID
-            if ($article && (!isset($formPostValues['DiscussionID']) || ($article->DiscussionID !== (int)$formPostValues['DiscussionID']))) {
-                $sender->Validation->addValidationResult('ArticleUrlCode', 'That URL code is in use by another article. It must be unique.');
+            if ($article && (!isset($formPostValues['DiscussionID'])
+                    || ($article->DiscussionID !== (int)$formPostValues['DiscussionID']))
+            ) {
+                $sender->Validation->addValidationResult('ArticleUrlCode',
+                    'That URL code is in use by another article. It must be unique.');
             }
         }
 
         // Check if the user in author name field exists
         // If the author name is the same as the current user's name, then the author definitely exists
-        if (isset($formPostValues['ArticleAuthorName']) && strcasecmp($formPostValues['ArticleAuthorName'], Gdn::session()->User->Name) !== 0) {
+        if (isset($formPostValues['ArticleAuthorName']) && strcasecmp($formPostValues['ArticleAuthorName'],
+                Gdn::session()->User->Name) !== 0
+        ) {
             $authorName = $formPostValues['ArticleAuthorName'];
             $author = Gdn::userModel()->getByUsername($authorName);
 
             if (!$author) {
-                $sender->Validation->addValidationResult('ArticleAuthorName', 'The user name entered for the author does not exist.');
+                $sender->Validation->addValidationResult('ArticleAuthorName',
+                    'The user name entered for the author does not exist.');
             }
         }
     }
 
+    /**
+     * Update discussion entity, add/update article entity, and add/update article thumbnail entity on discussion save.
+     *
+     * @param DiscussionModel $sender
+     * @param array $args Event arguments
+     */
     public function discussionModel_afterSaveDiscussion_handler($sender, $args) {
         // Gather variables
         $discussion = &$args['Discussion'];
@@ -547,8 +600,10 @@ class ArticlesHooks extends Gdn_Plugin {
                     $reaction = $reactionModel->GetByUser($discussionID, 'discussion', $author->UserID);
 
                     if (is_object($reaction)) {
-                        // the ReactionModel->Set() method removes the reaction for a discussion if the user already has a reaction for the action ID
-                        $reactionModel->Set($discussionID, 'discussion', $oldInsertUserID, $author->UserID, $reaction->ActionID);
+                        // the ReactionModel->Set() method removes the reaction for a discussion
+                        // if the user already has a reaction for the action ID
+                        $reactionModel->Set($discussionID, 'discussion', $oldInsertUserID, $author->UserID,
+                            $reaction->ActionID);
                     }
                 }
             }
@@ -581,18 +636,34 @@ class ArticlesHooks extends Gdn_Plugin {
         }
     }
 
+    /**
+     * Create setting page for this application.
+     *
+     * @param SettingsController $sender
+     * @throws Exception
+     */
     public function settingsController_articles_create($sender) {
         $this->dispatch($sender, $sender->RequestArgs);
     }
 
+    /**
+     * Add settings page to dashboard menu.
+     *
+     * @param $sender
+     */
     public function base_getAppSettingsMenuItems_handler($sender) {
         $groupName = 'Articles';
         $menu = &$sender->EventArguments['SideMenu'];
 
         $menu->addItem($groupName, $groupName, false, array('class' => $groupName));
-        $menu->addLink($groupName, T('Settings'), '/settings/articles', 'Garden.Settings.Manage');
+        $menu->addLink($groupName, t('Settings'), '/settings/articles', 'Garden.Settings.Manage');
     }
 
+    /**
+     * Handles the main settings page for this application.
+     *
+     * @param SettingsController $sender
+     */
     public function controller_index($sender) {
         // Set required permission
         $sender->permission('Garden.Settings.Manage');
@@ -610,7 +681,8 @@ class ArticlesHooks extends Gdn_Plugin {
                 'Control' => 'Checkbox'
             ),
             'Articles.TwitterUsername' => array(
-                'LabelCode' => 'Enter a Twitter username associated with this website to be used for Twitter card meta tags (optional):',
+                'LabelCode' => 'Enter a Twitter username associated with this website to'
+                    . ' be used for Twitter card meta tags (optional):',
                 'Control' => 'TextBox'
             )
         ));
@@ -640,78 +712,112 @@ class ArticlesHooks extends Gdn_Plugin {
         saveToConfig('Articles.Version', $version);
     }
 
-    public function ProfileController_BeforeEdit_Handler($Sender) {
-        $UserMeta = Gdn::UserModel()->GetMeta($Sender->User->UserID, 'Articles.%', 'Articles.');
-        if (!is_array($UserMeta)) {
+    /**
+     * Set initial form values for Articles user meta fields.
+     *
+     * @param ProfileController $sender
+     */
+    public function profileController_beforeEdit_handler($sender) {
+        $userMeta = Gdn::userModel()->getMeta($sender->User->UserID, 'Articles.%', 'Articles.');
+        if (!is_array($userMeta)) {
             return;
         }
 
-        if (isset($UserMeta['AuthorDisplayName'])) {
-            $Sender->Form->SetValue('Articles.AuthorDisplayName', $UserMeta['AuthorDisplayName']);
+        if (isset($userMeta['AuthorDisplayName'])) {
+            $sender->Form->setValue('Articles.AuthorDisplayName', $userMeta['AuthorDisplayName']);
         }
 
-        if (isset($UserMeta['AuthorBio'])) {
-            $Sender->Form->SetValue('Articles.AuthorBio', $UserMeta['AuthorBio']);
-        }
-    }
-
-    public function ProfileController_EditMyAccountAfter_Handler($Sender) {
-        if (Gdn::Session()->CheckPermission(array('Garden.Users.Edit'), false)) {
-            echo Wrap(
-                $Sender->Form->Label('Author Display Name', 'Articles.AuthorDisplayName') .
-                $Sender->Form->Textbox('Articles.AuthorDisplayName'),
-                'li');
-
-            echo Wrap(
-                $Sender->Form->Label('Author Bio', 'Articles.AuthorBio') .
-                $Sender->Form->Textbox('Articles.AuthorBio', array('multiline' => true)),
-                'li');
+        if (isset($userMeta['AuthorBio'])) {
+            $sender->Form->setValue('Articles.AuthorBio', $userMeta['AuthorBio']);
         }
     }
 
-    public function ProfileController_AfterUserInfo_Handler($Sender) {
+    /**
+     * Display input fields for Articles user meta fields.
+     *
+     * @param ProfileController $sender
+     */
+    public function profileController_editMyAccountAfter_handler($sender) {
+        if (Gdn::session()->checkPermission(array('Garden.Users.Edit'), false)) {
+            echo wrap($sender->Form->label('Author Display Name', 'Articles.AuthorDisplayName') .
+                $sender->Form->textbox('Articles.AuthorDisplayName'),
+                'li');
+
+            echo wrap($sender->Form->label('Author Bio', 'Articles.AuthorBio') .
+                $sender->Form->textbox('Articles.AuthorBio', array('multiline' => true)),
+                'li');
+        }
+    }
+
+    /**
+     * Display Articles user meta fields on user profile page.
+     *
+     * @param ProfileController $sender
+     */
+    public function ProfileController_AfterUserInfo_Handler($sender) {
         // Get the custom fields.
-        $UserMeta = Gdn::UserModel()->GetMeta($Sender->User->UserID, 'Articles.%', 'Articles.');
-        if (!is_array($UserMeta)) {
+        $userMeta = Gdn::userModel()->getMeta($sender->User->UserID, 'Articles.%', 'Articles.');
+        if (!is_array($userMeta)) {
             return;
         }
 
         // Display author display name
-        if (isset($UserMeta['AuthorDisplayName']) && ($UserMeta['AuthorDisplayName'] != '')) {
+        if (isset($userMeta['AuthorDisplayName']) && ($userMeta['AuthorDisplayName'] != '')) {
             echo '<dl id="BoxProfileAuthorDisplayName" class="About">';
-            echo ' <dt class="Articles Profile AuthorDisplayName">' . T('Author Display Name') . '</dt> ';
-            echo ' <dd class="Articles Profile AuthorDisplayName">' . Gdn_Format::Html($UserMeta['AuthorDisplayName']) . '</dd> ';
+            echo ' <dt class="Articles Profile AuthorDisplayName">' . t('Author Display Name') . '</dt> ';
+            echo ' <dd class="Articles Profile AuthorDisplayName">'
+                . Gdn_Format::html($userMeta['AuthorDisplayName']) . '</dd> ';
             echo '</dl>';
         }
 
         // Display author bio
-        if (isset($UserMeta['AuthorBio']) && ($UserMeta['AuthorBio'] != '')) {
+        if (isset($userMeta['AuthorBio']) && ($userMeta['AuthorBio'] != '')) {
             echo '<dl id="BoxProfileAuthorBio" class="About">';
-            echo ' <dt class="Articles Profile AuthorBio">' . T('Author Bio') . '</dt> ';
-            echo ' <dd class="Articles Profile AuthorBio">' . Gdn_Format::Html($UserMeta['AuthorBio']) . '</dd> ';
+            echo ' <dt class="Articles Profile AuthorBio">' . t('Author Bio') . '</dt> ';
+            echo ' <dd class="Articles Profile AuthorBio">' . Gdn_Format::html($userMeta['AuthorBio']) . '</dd> ';
             echo '</dl>';
         }
     }
 
-    public function UserModel_AfterSave_Handler($Sender) {
-        $UserID = val('UserID', $Sender->EventArguments);
-        $FormValues = val('FormPostValues', $Sender->EventArguments, array());
-        $AuthorInfo = array_intersect_key($FormValues,
+    /**
+     * Save Articles user meta fields to database.
+     *
+     * @param ProfileController $sender
+     */
+    public function userModel_afterSave_handler($sender) {
+        $userID = val('UserID', $sender->EventArguments);
+        $formValues = val('FormPostValues', $sender->EventArguments, array());
+        $authorInfo = array_intersect_key($formValues,
             array('Articles.AuthorDisplayName' => 1, 'Articles.AuthorBio' => 1));
 
-        foreach ($AuthorInfo as $k => $v) {
-            Gdn::UserMetaModel()->SetUserMeta($UserID, $k, $v);
+        foreach ($authorInfo as $k => $v) {
+            Gdn::userMetaModel()->setUserMeta($userID, $k, $v);
         }
     }
 
+    /**
+     * Fix article body paragraph formatting on preview in PostController.
+     *
+     * @param PostController $sender
+     */
     public function postController_afterCommentPreviewFormat_handler($sender) {
-        if (isset($sender->Comment->Body)) {
-            $sender->Comment->Body = formatArticleBodyParagraphs($sender->Comment->Body);
+        $controllerName = strtolower($sender->ControllerName);
+        $requestMethod = strtolower($sender->RequestMethod);
+
+        if ($controllerName === 'postcontroller' && (($requestMethod === 'article')
+                || ($requestMethod === 'editdiscussion'
+                    && ArticleModel::isArticle($sender->DiscussionModel->EventArguments['Discussion'])))
+        ) {
+            if (isset($sender->Comment->Body)) {
+                $sender->Comment->Body = formatArticleBodyParagraphs($sender->Comment->Body);
+            }
         }
     }
 
+    /**
+     * Call structure.php to update database
+     */
     public function structure() {
-        // Call structure.php to update database
         include(PATH_APPLICATIONS . DS . 'articles' . DS . 'settings' . DS . 'structure.php');
     }
 }

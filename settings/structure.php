@@ -1,8 +1,10 @@
 <?php
 /**
  * Articles database structure.
- *
  * Called by ArticleHooks::setup() to update database upon enabling app.
+ *
+ * @copyright 2015-2016 Austin S.
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GNU GPL v2
  */
 
 $database = Gdn::database();
@@ -31,4 +33,4 @@ $construct->primaryKey('ArticleThumbnailID')
     ->column('Height', 'usmallint')
     ->column('DateInserted', 'datetime')
     ->column('InsertUserID', 'int(11)')
-    ->Set($explicit, $drop);
+    ->set($explicit, $drop);

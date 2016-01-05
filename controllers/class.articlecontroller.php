@@ -2,7 +2,7 @@
 /**
  * Article controller
  *
- * @copyright 2015 Austin S.
+ * @copyright 2015-2016 Austin S.
  * @license http://www.opensource.org/licenses/gpl-2.0.php GNU GPL v2
  */
 
@@ -10,16 +10,37 @@
  * Handles displaying an article in most contexts via /article endpoint.
  */
 class ArticleController extends VanillaController {
-    /** @var arrayModels to include. */
+    /** @var array Models to include. */
     public $Uses = array('ArticleModel', 'ArticleThumbnailModel', 'DiscussionModel', 'CommentModel', 'Form');
+
+    /** @var ArticleModel */
+    public $ArticleModel;
+
+    /** @var CommentModel */
+    public $CommentModel;
 
     /** @var array Unique identifier. */
     public $CategoryID;
 
     /**
-     * Default single article view
+     * Default single article view.
+     *
+     * @param string $year Article identifier
+     * @param string $urlCode Unique article identifier
+     * @param string|int $page Page number
+     * @throws Exception If discussion doesn't exist or the year slug isn't correct
      */
     public function index($year, $urlCode, $page = '') {
+        // Load the discussion record by article URL code
+        if (!array_key_exists('Discussion', $this->Data)) {
+            $this->setData('Discussion', $this->ArticleModel->getByUrlCode($urlCode), true);
+        }
+
+        // If discussion doesn't exist or the year slug isn't correct
+        if (!is_object($this->Discussion) || $year !== date('Y', strtotime($this->Discussion->DateInserted))) {
+            throw notFoundException('Article');
+        }
+
         // Setup head
         $session = Gdn::session();
         $this->addJsFile('jquery.autosize.min.js');
@@ -27,19 +48,10 @@ class ArticleController extends VanillaController {
         $this->addJsFile('discussion.js', 'vanilla');
         Gdn_Theme::section('Discussion');
 
-        // Load the discussion record
-        if (!array_key_exists('Discussion', $this->Data)) {
-            $this->setData('Discussion', $this->ArticleModel->getByUrlCode($urlCode), true);
-        }
-
-        if (!is_object($this->Discussion) || $year !== date('Y', strtotime($this->Discussion->DateInserted))) {
-            throw notFoundException('Article');
-        }
-
         // Add CSS
         $this->addCssFile('articles.css');
 
-        if (gdn::themeManager()->currentTheme() === 'mobile') {
+        if (Gdn::themeManager()->currentTheme() === 'mobile') {
             $this->addCssFile('articles.mobile.css');
         }
 
@@ -59,10 +71,12 @@ class ArticleController extends VanillaController {
             $this->redirectDiscussion($this->Discussion);
         }
 
+        // Get category data as an array
         $category = CategoryModel::categories($this->Discussion->CategoryID);
         $this->setData('Category', $category, true);
 
-        if ($categoryCssClass = val('CssClass', $category)) {
+        $categoryCssClass = val('CssClass', $category);
+        if ($categoryCssClass) {
             Gdn_Theme::section($categoryCssClass);
         }
 
@@ -72,25 +86,27 @@ class ArticleController extends VanillaController {
         $this->title($this->Discussion->Name);
 
         // Actual number of comments, excluding the discussion itself.
-        $ActualResponses = $this->Discussion->CountComments;
+        $actualResponses = $this->Discussion->CountComments;
 
         $this->Offset = $offset;
         if (c('Vanilla.Comments.AutoOffset')) {
             if (!is_numeric($this->Offset) || $this->Offset < 0 || !$offsetProvided) {
                 // Round down to the appropriate offset based on the user's read comments & comments per page
-                $CountCommentWatch = $this->Discussion->CountCommentWatch > 0 ? $this->Discussion->CountCommentWatch : 0;
-                if ($CountCommentWatch > $ActualResponses) {
-                    $CountCommentWatch = $ActualResponses;
+                $countCommentWatch = $this->Discussion->CountCommentWatch > 0
+                    ? $this->Discussion->CountCommentWatch : 0;
+                if ($countCommentWatch > $actualResponses) {
+                    $countCommentWatch = $actualResponses;
                 }
 
                 // (((67 comments / 10 perpage) = 6.7) rounded down = 6) * 10 perpage = offset 60;
-                $this->Offset = floor($CountCommentWatch / $limit) * $limit;
+                $this->Offset = floor($countCommentWatch / $limit) * $limit;
             }
-            if ($ActualResponses <= $limit) {
+
+            if ($actualResponses <= $limit) {
                 $this->Offset = 0;
             }
 
-            if ($this->Offset == $ActualResponses) {
+            if ($this->Offset == $actualResponses) {
                 $this->Offset -= $limit;
             }
         } else {
@@ -103,7 +119,6 @@ class ArticleController extends VanillaController {
             $this->Offset = 0;
         }
 
-
         $latestItem = $this->Discussion->CountCommentWatch;
         if ($latestItem === null) {
             $latestItem = 0;
@@ -113,29 +128,29 @@ class ArticleController extends VanillaController {
 
         $this->setData('_LatestItem', $latestItem);
 
-        // Set the canonical url to have the proper page title.
+        // Set the canonical url to have the proper page title
         $this->canonicalUrl(articleUrl($this->Discussion, pageNumber($this->Offset, $limit, 0, false)));
 
         // Load the comments
         $this->setData('Comments', $this->CommentModel->get($this->DiscussionID, $limit, $this->Offset));
 
-        $pageNumber = PageNumber($this->Offset, $limit);
+        $pageNumber = pageNumber($this->Offset, $limit);
         $this->setData('Page', $pageNumber);
 
         // Set meta tags
         $this->addMetaTags();
 
         if ($pageNumber > 1) {
-            $this->Data['Title'] .= sprintf(t(' - Page %s'), PageNumber($this->Offset, $limit));
+            $this->Data['Title'] .= sprintf(t(' - Page %s'), pageNumber($this->Offset, $limit));
         }
 
-        // Queue notification.
+        // Queue notification
         if ($this->Request->get('new') && c('Vanilla.QueueNotifications')) {
             $this->addDefinition('NotifyNewDiscussion', 1);
         }
 
         // Make sure to set the user's discussion watch records
-        $this->CommentModel->SetWatch($this->Discussion, $limit, $this->Offset, $this->Discussion->CountComments);
+        $this->CommentModel->setWatch($this->Discussion, $limit, $this->Offset, $this->Discussion->CountComments);
 
         // Build a pager
         $pagerFactory = new Gdn_PagerFactory();
@@ -147,7 +162,7 @@ class ArticleController extends VanillaController {
         $this->Pager->configure(
             $this->Offset,
             $limit,
-            $ActualResponses,
+            $actualResponses,
             array('DiscussionUrl')
         );
         $this->Pager->Record = $this->Discussion;
@@ -155,7 +170,7 @@ class ArticleController extends VanillaController {
         $this->fireEvent('AfterBuildPager');
 
         // Define the form for the comment input
-        $this->Form = Gdn::Factory('Form', 'Comment');
+        $this->Form = Gdn::factory('Form', 'Comment');
         $this->Form->Action = url('/post/comment/');
         $this->DiscussionID = $this->Discussion->DiscussionID;
         $this->Form->addHidden('DiscussionID', $this->DiscussionID);
@@ -200,7 +215,8 @@ class ArticleController extends VanillaController {
         $this->addModule('ArticlesModule');
         $this->addModule('RecentActivityModule');
 
-        $this->CanEditComments = $session->checkPermission('Vanilla.Comments.Edit', true, 'Category', 'any') && c('Vanilla.AdminCheckboxes.Use');
+        $this->CanEditComments = $session->checkPermission('Vanilla.Comments.Edit', true, 'Category',
+                'any') && c('Vanilla.AdminCheckboxes.Use');
 
         // Report the discussion id so js can use it.
         $this->addDefinition('DiscussionID', $this->DiscussionID);
@@ -227,6 +243,9 @@ class ArticleController extends VanillaController {
         $this->render();
     }
 
+    /**
+     * Add meta tags, including open graph meta tags, to the head
+     */
     protected function addMetaTags() {
         if (!$this->Head) {
             return;
@@ -248,7 +267,8 @@ class ArticleController extends VanillaController {
         if (strlen($this->Discussion->ArticleExcerpt) > 0) {
             $description = Gdn_Format::plainText($this->Discussion->ArticleExcerpt, $this->Discussion->Format);
         } else {
-            $description = sliceParagraph(Gdn_Format::plainText($this->Discussion->Body, $this->Discussion->Format), 160);
+            $description = sliceParagraph(Gdn_Format::plainText($this->Discussion->Body, $this->Discussion->Format),
+                160);
         }
 
         $this->description($description);
@@ -292,6 +312,21 @@ class ArticleController extends VanillaController {
 
         if ($thumbnail) {
             $this->Head->addTag('meta', array('name' => 'twitter:image', 'content' => $thumbnailPath));
+        }
+    }
+
+    /**
+     * Redirect to the url specified by the discussion.
+     *
+     * @param array|object $discussion
+     */
+    protected function redirectDiscussion($discussion) {
+        $body = Gdn_Format::to(val('Body', $discussion), val('Format', $discussion));
+
+        if (preg_match('`href="([^"]+)"`i', $body, $matches)) {
+            $url = $matches[1];
+
+            safeRedirect($url, 301);
         }
     }
 }

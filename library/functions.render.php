@@ -2,7 +2,7 @@
 /**
  * Render functions.
  *
- * @copyright 2015 Austin S.
+ * @copyright 2015-2016 Austin S.
  * @license http://www.opensource.org/licenses/gpl-2.0.php GNU GPL v2
  */
 
@@ -11,6 +11,8 @@ if (!function_exists('articleUrl')) {
      * Return a URL for an article.
      *
      * @param object $discussion
+     * @param string|int $page
+     * @param bool $withDomain
      * @return string
      */
     function articleUrl($discussion, $page = '', $withDomain = true) {
@@ -38,7 +40,7 @@ if (!function_exists('FormatArticleBody')) {
     function formatArticleBodyParagraphs($text) {
         // Format new lines
         $text = preg_replace("/(\015\012)|(\015)|(\012)/", "<br />", $text);
-        $text = fixNl2Br($text);
+        $text = fixnl2br($text);
 
         // Convert br to paragraphs
         $text = preg_replace('#(?:<br\s*/?>\s*?){2,}#', '</p><p>', $text);
