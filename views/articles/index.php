@@ -19,48 +19,52 @@ if ($this->data('_PagerUrl')) {
 $discussions = $this->data('Discussions')->result();
 
 echo '<div class="Articles">';
-foreach ($discussions as $discussion) {
-    // Get thumbnail
-    $thumbnail = $this->ArticleThumbnailModel->getByArticleID($discussion->ArticleID);
-    $showThumbnail = $thumbnail && strlen($discussion->ArticleExcerpt) > 0;
-    $thumbnailClass = $showThumbnail ? ' HasThumbnail' : '';
+if ($this->data('Discussions')->numRows() == 0) {
+    echo wrap(t('No articles have been posted yet.'), 'div', array('class' => 'Empty'));
+} else {
+    foreach ($discussions as $discussion) {
+        // Get thumbnail
+        $thumbnail = $this->ArticleThumbnailModel->getByArticleID($discussion->ArticleID);
+        $showThumbnail = $thumbnail && strlen($discussion->ArticleExcerpt) > 0;
+        $thumbnailClass = $showThumbnail ? ' HasThumbnail' : '';
 
-    echo "<article id=\"Discussion_$discussion->DiscussionID\""
-        . " class=\"Article_$discussion->ArticleID Article$thumbnailClass\">";
-    // Display options
-    echo '<span class="Options">';
-    echo optionsList($discussion);
-    echo bookmarkButton($discussion);
-    echo '</span>';
+        echo "<article id=\"Discussion_$discussion->DiscussionID\""
+            . " class=\"Article_$discussion->ArticleID Article$thumbnailClass\">";
+        // Display options
+        echo '<span class="Options">';
+        echo optionsList($discussion);
+        echo bookmarkButton($discussion);
+        echo '</span>';
 
-    // Display thumbnail
-    if ($showThumbnail) {
-        $thumbnailPath = '/uploads' . $thumbnail->Path;
+        // Display thumbnail
+        if ($showThumbnail) {
+            $thumbnailPath = '/uploads' . $thumbnail->Path;
 
-        echo wrap(anchor(img($thumbnailPath, array('title' => $discussion->Name)), articleUrl($discussion)), 'div',
-            array('class' => 'ArticleThumbnail'));
+            echo wrap(anchor(img($thumbnailPath, array('title' => $discussion->Name)), articleUrl($discussion)), 'div',
+                array('class' => 'ArticleThumbnail'));
+        }
+
+        echo '<div class="ArticleInner">';
+        echo '<header>';
+        // Display article header
+        echo "<h2>" . anchor($discussion->Name, articleUrl($discussion)) . "</h2>";
+
+        // Display meta
+        writeArticleMeta($discussion);
+        echo '</header>';
+
+        // Display excerpt or body
+        $text = (strlen($discussion->ArticleExcerpt) > 0) ? $discussion->ArticleExcerpt : $discussion->Body;
+        $formatObject = new stdClass();
+        $formatObject->Body = $text;
+        $formatObject->Format = $discussion->Format;
+        $text = formatBody($formatObject);
+        $text = formatArticleBodyParagraphs($text);
+        echo wrap($text, 'div', array('class' => 'ArticleBody'));
+
+        echo '</div>'; // End ArticleInner
+        echo '</article>';
     }
-
-    echo '<div class="ArticleInner">';
-    echo '<header>';
-    // Display article header
-    echo "<h2>" . anchor($discussion->Name, articleUrl($discussion)) . "</h2>";
-
-    // Display meta
-    writeArticleMeta($discussion);
-    echo '</header>';
-
-    // Display excerpt or body
-    $text = (strlen($discussion->ArticleExcerpt) > 0) ? $discussion->ArticleExcerpt : $discussion->Body;
-    $formatObject = new stdClass();
-    $formatObject->Body = $text;
-    $formatObject->Format = $discussion->Format;
-    $text = formatBody($formatObject);
-    $text = formatArticleBodyParagraphs($text);
-    echo wrap($text, 'div', array('class' => 'ArticleBody'));
-
-    echo '</div>'; // End ArticleInner
-    echo '</article>';
 }
 echo '</div>';
 
