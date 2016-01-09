@@ -91,11 +91,13 @@ if (c('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo '</div>';
 
     // Author
-    echo '<div class="P">';
-    echo $this->Form->Label('Author', 'ArticleAuthorName');
-    echo wrap($this->Form->TextBox('ArticleAuthorName', array('class' => 'InputBox BigInput MultiComplete')),
-        'div', array('class' => 'TextBoxWrapper'));
-    echo '</div>';
+    if ($session->checkPermission('Vanilla.Discussions.Edit', true, 'Category', val('CategoryID', $this->Category, ''))) {
+        echo '<div class="P">';
+        echo $this->Form->Label('Author', 'ArticleAuthorName');
+        echo wrap($this->Form->TextBox('ArticleAuthorName', array('class' => 'InputBox BigInput MultiComplete')),
+            'div', array('class' => 'TextBoxWrapper'));
+        echo '</div>';
+    }
 
     // Display options
     if ($options != '') {
