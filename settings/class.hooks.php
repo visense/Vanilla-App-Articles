@@ -311,8 +311,11 @@ class ArticlesHooks extends Gdn_Plugin {
                 $sender->Form->addHidden('ArticleUrlCodeDefined', '1');
 
                 // Set author based on InsertUserID
-                $authorName = Gdn::userModel()->getID($sender->Data['Discussion']->InsertUserID)->Name;
-                $sender->Form->setValue('ArticleAuthorName', $authorName);
+                if (Gdn::session()->checkPermission('Vanilla.Discussions.Edit', true, 'Category',
+                        val('CategoryID', $sender->data('Discussion'), ''))) {
+                    $authorName = Gdn::userModel()->getID($sender->Data['Discussion']->InsertUserID)->Name;
+                    $sender->Form->setValue('ArticleAuthorName', $authorName);
+                }
 
                 // Get thumbnail
                 $articleThumbnailModel = new ArticleThumbnailModel();
@@ -569,7 +572,8 @@ class ArticlesHooks extends Gdn_Plugin {
         $formPostValues = $args['FormPostValues'];
 
         // Update discussion InsertUserID if author changed
-        if (isset($formPostValues['ArticleAuthorName'])) {
+        if (Gdn::session()->checkPermission('Vanilla.Discussions.Edit', true, 'Category',
+                val('CategoryID', $discussion, '')) && isset($formPostValues['ArticleAuthorName'])) {
             $authorName = $formPostValues['ArticleAuthorName'];
 
             // Author definitely exists since the field is validated in the BeforeSaveDiscussion event
