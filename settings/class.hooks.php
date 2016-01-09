@@ -743,7 +743,7 @@ class ArticlesHooks extends Gdn_Plugin {
      * @param ProfileController $sender
      */
     public function profileController_editMyAccountAfter_handler($sender) {
-        if (Gdn::session()->checkPermission(array('Garden.Users.Edit'), false)) {
+        if (Gdn::session()->checkPermission(array('Garden.Users.Edit', 'Articles.Articles.Add'), false)) {
             echo wrap($sender->Form->label('Author Display Name', 'Articles.AuthorDisplayName') .
                 $sender->Form->textbox('Articles.AuthorDisplayName'),
                 'li');
