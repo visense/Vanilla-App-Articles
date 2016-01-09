@@ -34,3 +34,27 @@ $construct->primaryKey('ArticleThumbnailID')
     ->column('DateInserted', 'datetime')
     ->column('InsertUserID', 'int(11)')
     ->set($explicit, $drop);
+
+/*
+ * Set up permissions
+ */
+$permissionModel = Gdn::permissionModel();
+$permissionModel->Database = $database;
+$permissionModel->SQL = $sql;
+
+// Define some global permissions
+$permissionModel->define(array(
+    'Articles.Articles.Add' => 0
+));
+
+// Set initial role permissions for the Moderator role
+$permissionModel->save(array(
+    'Role' => 'Moderator',
+    'Articles.Articles.Add' => 1
+));
+
+// Set initial role permissions for the Administrator role
+$permissionModel->save(array(
+    'Role' => 'Administrator',
+    'Articles.Articles.Add' => 1
+));

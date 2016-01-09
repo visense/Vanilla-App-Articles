@@ -254,7 +254,8 @@ class ArticlesHooks extends Gdn_Plugin {
             'Singular' => 'Article',
             'Plural' => 'Articles',
             'AddUrl' => '/post/article',
-            'AddText' => 'Compose Article'
+            'AddText' => 'Compose Article',
+            'AddPermission' => 'Articles.Articles.Add'
         );
     }
 
@@ -278,7 +279,11 @@ class ArticlesHooks extends Gdn_Plugin {
      */
     public function postController_article_create($sender, $categoryUrlCode = '') {
         $sender->View = PATH_APPLICATIONS . '/articles/views/post/article.php';
+
         $sender->setData('Type', 'Article');
+
+        $sender->permission('Articles.Articles.Add');
+
         $sender->discussion($categoryUrlCode);
     }
 
