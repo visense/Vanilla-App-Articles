@@ -85,7 +85,7 @@ class ArticlesModule extends Gdn_Module {
             $this->getData();
         }
 
-        return parent::toString();
+        return ($this->data('Discussions')->numRows() > 0) ? parent::toString() : null;
     }
 
     /**
