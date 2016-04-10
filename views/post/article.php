@@ -31,7 +31,7 @@ if (c('Vanilla.Categories.Use') && is_object($this->Category)) {
 
     // Name
     echo '<div class="P">';
-    echo $this->Form->label('Article Name', 'Name');
+    echo $this->Form->label('Article Title', 'Name');
     echo wrap($this->Form->textBox('Name', array('maxlength' => 100, 'class' => 'InputBox BigInput')), 'div',
         array('class' => 'TextBoxWrapper'));
     echo '</div>';
@@ -80,7 +80,7 @@ if (c('Vanilla.Categories.Use') && is_object($this->Category)) {
     echo '<div id="ArticleThumbnail">';
     $thumbnail = $this->data('ArticleThumbnail');
     if ($thumbnail) {
-        $imagePath = url('/uploads' . $thumbnail->Path);
+        $imagePath = Gdn_UploadImage::url($thumbnail->Path);
 
         echo '<div id="ArticleThumbnailImage"><img src="' . $imagePath . '" alt="" /></div>' .
             '<div id="ArticleThumbnailActions"><a id="DeleteArticleThumbnail" href="'

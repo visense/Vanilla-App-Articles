@@ -283,7 +283,7 @@ class ArticleController extends VanillaController {
         // Thumbnail
         $thumbnail = $this->ArticleThumbnailModel->getByArticleID($this->Discussion->ArticleID);
         if ($thumbnail) {
-            $thumbnailPath = url('/uploads' . $thumbnail->Path, true);
+            $thumbnailPath = Gdn_UploadImage::url($thumbnail->Path);
 
             $this->image($thumbnailPath);
         }
