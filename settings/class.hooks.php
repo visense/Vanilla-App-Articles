@@ -187,6 +187,8 @@ class ArticlesHooks extends Gdn_Plugin {
     /**
      * Join article data with discussion results and change discussion URL in index view.
      *
+     * @see https://github.com/vanilla/vanilla/commit/f204fd3df08093b48bbfbb3954c4e3f754fb4453 Bug fix for Vanilla 2.2.
+     *
      * @param DiscussionModel $sender
      * @param array $args Event arguments
      */
