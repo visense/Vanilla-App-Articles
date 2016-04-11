@@ -387,7 +387,7 @@ class ArticlesHooks extends Gdn_Plugin {
         }
 
         // Check permission
-        $sender->permission('Vanilla.Discussions.Add');
+        $sender->permission('Articles.Articles.Add');
 
         // Handle the file data
         $sender->deliveryMethod(DELIVERY_METHOD_JSON);
@@ -489,7 +489,7 @@ class ArticlesHooks extends Gdn_Plugin {
         }
 
         // Check permission
-        $sender->permission('Vanilla.Discussions.Add');
+        $sender->permission('Articles.Articles.Add');
 
         // Retrieve thumbnail
         $articleThumbnailModel = new ArticleThumbnailModel();
