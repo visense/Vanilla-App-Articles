@@ -70,7 +70,12 @@ class ArticlesController extends VanillaController {
 
         // Get articles
         $wheres = array('d.Type' => 'Article', 'd.Announce' => 'all');
-        $this->DiscussionModel->Watching = true; // Only show categories with permission to view
+
+        // Set Watching to false to ensure that articles are retrieved
+        // even if "Hide from the recent discussions page" is checked for a category.
+        // View permissions still take place as intended.
+        $this->DiscussionModel->Watching = false;
+
         $this->setData('CountDiscussions', $this->DiscussionModel->getCount($wheres));
         $this->setData('Discussions', $this->DiscussionModel->getWhere($wheres, $offset, $limit), true);
         $this->ShowOptions = true;
