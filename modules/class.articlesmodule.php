@@ -58,7 +58,7 @@ class ArticlesModule extends Gdn_Module {
         if ($categoryIDs) {
             $where['d.CategoryID'] = CategoryModel::filterCategoryPermissions($categoryIDs);
         } else {
-            $discussionModel->Watching = true;
+            $discussionModel->Watching = false;
         }
 
         $this->fireEvent('ArticlesModuleBeforeGet');
