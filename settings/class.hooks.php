@@ -44,7 +44,7 @@ class ArticlesHooks extends Gdn_Plugin {
      * @param Gdn_Controller $sender
      */
     public function base_beforeDiscussionFilters_handler($sender) {
-        if (c('Articles.ShowArticlesMenuLink')) {
+        if (c('Articles.ShowArticlesSidebarMenuLink')) {
             echo '<li class="Articles' . (strtolower($sender->ControllerName) == 'articlescontroller'
                 && strtolower($sender->RequestMethod) == 'index' ? ' Active' : '') . '">'
                 . anchor(sprite('SpArticles') . ' ' . t('Articles'), '/articles') . '</li>';
@@ -685,6 +685,10 @@ class ArticlesHooks extends Gdn_Plugin {
         $configModule->initialize(array(
             'Articles.ShowArticlesMenuLink' => array(
                 'LabelCode' => 'Show link to Articles page in main menu?',
+                'Control' => 'Checkbox'
+            ),
+            'Articles.ShowArticlesSidebarMenuLink' => array(
+                'LabelCode' => 'Show link to Articles page in sidebar menu?',
                 'Control' => 'Checkbox'
             ),
             'Articles.Articles.ShowAuthorInfo' => array(

@@ -10,6 +10,7 @@
 // All of the settings defined here can be overridden in the /conf/*.php files.
 
 $Configuration['Articles']['ShowArticlesMenuLink'] = true;
+$Configuration['Articles']['ShowArticlesSidebarMenuLink'] = true;
 $Configuration['Articles']['Articles']['PerPage'] = 12;
 $Configuration['Articles']['Articles']['ThumbnailWidth'] = 260;
 $Configuration['Articles']['Articles']['ThumbnailHeight'] = 146;
