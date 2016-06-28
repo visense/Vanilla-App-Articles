@@ -425,8 +425,8 @@ class ArticlesHooks extends Gdn_Plugin {
             $extension = trim(pathinfo($targetImage, PATHINFO_EXTENSION), '.');
             $uploadsSubdir = '/articles/' . $currentYear . '/' . $currentMonth;
 
-            $saveWidth = c('Articles.Articles.ThumbnailWidth', 260);
-            $saveHeight = c('Articles.Articles.ThumbnailHeight', 146);
+            $saveWidth = c('Articles.Articles.ThumbnailWidth', 280);
+            $saveHeight = c('Articles.Articles.ThumbnailHeight', 200);
 
             // Save the uploaded image.
             $props = $uploadImage->saveImageAs(

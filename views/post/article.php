@@ -73,8 +73,8 @@ if (c('Vanilla.Categories.Use') && is_object($this->Category)) {
 
     // Article thumbnail
     echo '<div id="ArticleThumbnailUpload" class="P">';
-    echo $this->Form->label('Upload Thumbnail (Max dimensions: ' . c('Articles.Articles.ThumbnailWidth', 260)
-        . 'x' . c('Articles.Articles.ThumbnailHeight', 146) . ')', 'ArticleThumbnail');
+    echo $this->Form->label('Upload Thumbnail (Max dimensions: ' . c('Articles.Articles.ThumbnailWidth', 280)
+        . 'x' . c('Articles.Articles.ThumbnailHeight', 200) . ')', 'ArticleThumbnail');
     echo $this->Form->imageUpload('ArticleThumbnail');
 
     echo '<div id="ArticleThumbnail">';
