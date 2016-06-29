@@ -73,7 +73,7 @@ jQuery(document).ready(function ($) {
 
                 $(this).hide();
 
-                var imagePath = gdn.url('/uploads' + response.Path);
+                var imagePath = gdn.definition('WebRoot') + '/uploads' + response.Path;
 
                 // Show new image in form.
                 $('#ArticleThumbnail')
